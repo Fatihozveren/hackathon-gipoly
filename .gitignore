@@ -1,0 +1,29 @@
+# === BACKEND (Python - FastAPI) ===
+backend/venv/
+backend/__pycache__/
+backend/.env
+backend/.mypy_cache/
+backend/.pytest_cache/
+*.pyc
+*.pyo
+*.pyd
+
+# === FRONTEND (Next.js - React) ===
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.production.local
+frontend/.env.test.local
+frontend/.DS_Store
+
+# === GENERAL ===
+*.log
+*.sqlite3
+*.db
+*.swp
+.env
+.vscode/
+.idea/
+__pycache__/
+.DS_Store
