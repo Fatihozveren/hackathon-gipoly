@@ -14,7 +14,14 @@ engine = create_engine(DATABASE_URL, echo=True)
 
 def init_db():
     """Initialize database tables from SQLModel metadata"""
-    SQLModel.metadata.drop_all(engine)
+    SQLModel.metadata.clear()
+    
+    # Import models to register them
+    from models.user import User
+    from models.workspace import Workspace, WorkspaceMember
+    from tools.trend_agent.models import TrendSuggestion
+    from models.trends import TrendsData, CategoryTrends, EcommerceTrends, WordCloudData, NgramAnalysis
+    
     SQLModel.metadata.create_all(engine)
 
 

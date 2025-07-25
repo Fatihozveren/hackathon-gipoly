@@ -3,11 +3,9 @@ import asyncio
 from httpx import AsyncClient
 from sqlmodel import SQLModel, create_engine, Session
 from fastapi.testclient import TestClient
-from backend.main import app
-from backend.database import get_session
-from backend.models.user import User
-from backend.models.workspace import Workspace, WorkspaceMember
-from backend.utils.security import get_password_hash, create_access_token
+from main import app
+from database import get_session
+from utils.security import get_password_hash, create_access_token
 
 
 # Test database URL
@@ -28,6 +26,14 @@ def event_loop():
 @pytest.fixture(scope="function")
 def db_session():
     """Create a fresh database session for each test."""
+    # Clear metadata to avoid conflicts
+    SQLModel.metadata.clear()
+    
+    # Import models to register them
+    from ..models.user import User
+    from ..models.workspace import Workspace, WorkspaceMember
+    from ..tools.trend_agent.models import TrendSuggestion
+    
     # Create tables
     SQLModel.metadata.create_all(test_engine)
     
@@ -69,6 +75,11 @@ async def async_client(db_session):
 @pytest.fixture
 def test_user(db_session):
     """Create a test user."""
+    # Import models to ensure they are registered
+    from ..models.user import User
+    from ..models.workspace import Workspace, WorkspaceMember
+    from ..tools.trend_agent.models import TrendSuggestion
+    
     user = User(
         email="test@example.com",
         password=get_password_hash("testpassword"),
@@ -83,6 +94,11 @@ def test_user(db_session):
 @pytest.fixture
 def test_workspace(db_session, test_user):
     """Create a test workspace."""
+    # Import models to ensure they are registered
+    from ..models.user import User
+    from ..models.workspace import Workspace, WorkspaceMember
+    from ..tools.trend_agent.models import TrendSuggestion
+    
     workspace = Workspace(
         name="Test Workspace",
         slug="test-workspace-123",

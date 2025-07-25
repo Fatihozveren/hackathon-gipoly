@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -5,7 +6,7 @@ from passlib.context import CryptContext
 from fastapi import HTTPException, status
 
 # JWT Configuration
-SECRET_KEY = "my-secret-key-need-change-in-production"
+SECRET_KEY = os.getenv("SECRET_KEY", "my_default_secret_key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
