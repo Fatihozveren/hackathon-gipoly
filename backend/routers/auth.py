@@ -1,16 +1,16 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlmodel import Session, select
-from ..database import get_session
-from ..models.user import User
-from ..schemas.user import UserCreate, UserLogin, UserRead, UserUpdate, PasswordChange, Token
-from ..utils.security import get_password_hash, verify_password, create_access_token
-from ..utils.localization import get_localized_message
-from ..utils.rate_limiting import check_login_attempts, record_failed_login, record_successful_login
-from ..utils.logging_config import get_logger
+from database import get_session
+from models.user import User
+from schemas.user import UserCreate, UserLogin, UserRead, UserUpdate, PasswordChange, Token
+from utils.security import get_password_hash, verify_password, create_access_token
+from utils.localization import get_localized_message
+from utils.rate_limiting import check_login_attempts, record_failed_login, record_successful_login
+from utils.logging_config import get_logger
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from ..dependencies import get_current_user
+from dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 logger = get_logger(__name__)

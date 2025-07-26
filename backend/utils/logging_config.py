@@ -80,8 +80,6 @@ def setup_logging():
     # Set specific loggers
     logging.getLogger("uvicorn").setLevel(logging.WARNING)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
-    
-    return root_logger
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -89,5 +87,4 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
 
 
-# Initialize logging
-setup_logging() 
+ 

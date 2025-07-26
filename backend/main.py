@@ -1,19 +1,18 @@
 # backend/main.py
 
 import os
-from fastapi import FastAPI, Depends, Request
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import init_db
 from routers.auth import router as auth_router
 from routers.workspaces import router as workspaces_router
-from routers.health import router as health_router
-from dependencies import get_current_user
-from models.user import User
-from schemas.user import UserRead
+from tools.trend_agent.router import router as trend_agent_router
 from utils.logging_config import setup_logging, get_logger
 from utils.rate_limiting import setup_rate_limiting
 from utils.exception_handlers import setup_exception_handlers
+load_dotenv()
 
 # Setup logging
 setup_logging()
@@ -61,7 +60,7 @@ setup_exception_handlers(app)
 # Include routers
 app.include_router(auth_router)
 app.include_router(workspaces_router)
-app.include_router(health_router)
+app.include_router(trend_agent_router)
 
 
 @app.get("/")
@@ -70,16 +69,9 @@ def read_root():
     return {
         "message": "Gipoly backend API is live!",
         "version": "1.0.0",
-        "docs": "/docs",
-        "health": "/health"
+        "docs": "/docs"
     }
 
-
-@app.get("/me", response_model=UserRead)
-async def get_current_user_info(current_user: User = Depends(get_current_user)):
-    """Get current user information (protected endpoint)."""
-    logger.info(f"User info requested for: {current_user.email}")
-    return current_user
 
 
 @app.middleware("http")

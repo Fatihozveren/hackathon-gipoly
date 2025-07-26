@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict
 from fastapi import Request
 
 # Message dictionary for multi-language support
@@ -11,6 +11,14 @@ MESSAGES: Dict[str, Dict[str, str]] = {
     "WORKSPACE_CREATED": {
         "en": "Workspace created successfully.",
         "tr": "Çalışma alanı başarıyla oluşturuldu."
+    },
+    "WORKSPACE_UPDATED": {
+        "en": "Workspace updated successfully.",
+        "tr": "Çalışma alanı başarıyla güncellendi."
+    },
+    "WORKSPACE_DELETED": {
+        "en": "Workspace deleted successfully.",
+        "tr": "Çalışma alanı başarıyla silindi."
     },
     "WORKSPACE_NOT_FOUND": {
         "en": "Workspace not found.",
@@ -28,12 +36,32 @@ MESSAGES: Dict[str, Dict[str, str]] = {
         "en": "Workspace with this slug already exists.",
         "tr": "Bu slug ile çalışma alanı zaten mevcut."
     },
-    
-    # User related messages
+    "WORKSPACE_OWNER_ONLY": {
+        "en": "Only workspace owner can perform this action.",
+        "tr": "Bu işlemi sadece çalışma alanı sahibi yapabilir."
+    },
+    "MEMBER_ADDED": {
+        "en": "Member added to workspace successfully.",
+        "tr": "Üye çalışma alanına başarıyla eklendi."
+    },
+    "MEMBER_REMOVED": {
+        "en": "Member removed from workspace successfully.",
+        "tr": "Üye çalışma alanından başarıyla çıkarıldı."
+    },
+    "MEMBER_ROLE_UPDATED": {
+        "en": "Member role updated successfully.",
+        "tr": "Üye rolü başarıyla güncellendi."
+    },
     "USER_NOT_FOUND": {
         "en": "User not found.",
         "tr": "Kullanıcı bulunamadı."
     },
+    "USER_ALREADY_MEMBER": {
+        "en": "User is already a member of this workspace.",
+        "tr": "Kullanıcı zaten bu çalışma alanının üyesi."
+    },
+    
+    # User related messages
     "EMAIL_ALREADY_REGISTERED": {
         "en": "Email already registered.",
         "tr": "Bu email adresi zaten kayıtlı."
@@ -41,6 +69,22 @@ MESSAGES: Dict[str, Dict[str, str]] = {
     "INVALID_CREDENTIALS": {
         "en": "Incorrect email or password.",
         "tr": "Hatalı email veya şifre."
+    },
+    "PROFILE_UPDATED": {
+        "en": "Profile updated successfully.",
+        "tr": "Profil başarıyla güncellendi."
+    },
+    "PASSWORD_CHANGED": {
+        "en": "Password changed successfully.",
+        "tr": "Şifre başarıyla değiştirildi."
+    },
+    "CURRENT_PASSWORD_INCORRECT": {
+        "en": "Current password is incorrect.",
+        "tr": "Mevcut şifre hatalı."
+    },
+    "ACCOUNT_DELETED": {
+        "en": "Account deleted successfully.",
+        "tr": "Hesap başarıyla silindi."
     },
     
     # General messages
@@ -59,6 +103,24 @@ MESSAGES: Dict[str, Dict[str, str]] = {
     "NOT_FOUND": {
         "en": "Resource not found.",
         "tr": "Kaynak bulunamadı."
+    },
+    
+    # TrendAgent related messages
+    "trend_suggestion_limit_reached": {
+        "en": "You have reached the maximum limit of 3 trend suggestions for this workspace.",
+        "tr": "Bu çalışma alanı için maksimum 3 trend önerisi limitine ulaştınız."
+    },
+    "trend_analysis_error": {
+        "en": "An error occurred during trend analysis. Please try again.",
+        "tr": "Trend analizi sırasında bir hata oluştu. Lütfen tekrar deneyin."
+    },
+    "suggestion_not_found": {
+        "en": "Trend suggestion not found.",
+        "tr": "Trend önerisi bulunamadı."
+    },
+    "suggestion_deleted": {
+        "en": "Trend suggestion deleted successfully.",
+        "tr": "Trend önerisi başarıyla silindi."
     }
 }
 
@@ -72,21 +134,19 @@ def get_language_from_request(request: Request) -> str:
     """Extract language from Accept-Language header"""
     accept_language = request.headers.get("accept-language", "en")
     
-    # Parse Accept-Language header (e.g., "tr-TR,tr;q=0.9,en;q=0.8")
     if accept_language:
-        # Get the first language code
         primary_lang = accept_language.split(",")[0].split(";")[0].strip()
-        # Extract base language (tr-TR -> tr)
         base_lang = primary_lang.split("-")[0].lower()
         
-        # Check if we support this language
         if base_lang in ["tr", "en"]:
             return base_lang
     
     return "en"
 
 
-def get_localized_message(key: str, request: Request) -> str:
-    """Get localized message using request headers"""
-    lang = get_language_from_request(request)
-    return get_message(key, lang) 
+def get_localized_message(key: str, request: Request = None) -> str:
+    """Get localized message using request headers or default to English"""
+    if request:
+        lang = get_language_from_request(request)
+        return get_message(key, lang)
+    return get_message(key, "en") 

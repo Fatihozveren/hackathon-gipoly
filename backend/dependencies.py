@@ -2,8 +2,6 @@ from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import Session, select
 from database import get_session
-from models.user import User
-from models.workspace import Workspace, WorkspaceMember
 from utils.security import verify_token
 from utils.localization import get_localized_message
 
@@ -14,7 +12,8 @@ async def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
     session: Session = Depends(get_session)
-) -> User:
+):
+    from models.user import User
     """Get current user from JWT token"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -39,9 +38,10 @@ async def get_current_user(
 async def get_current_workspace(
     workspace_slug: str,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user = Depends(get_current_user),
     session: Session = Depends(get_session)
-) -> Workspace:
+):
+    from models.workspace import Workspace, WorkspaceMember
     """Get current workspace and verify user access"""
     # Get workspace by slug
     statement = select(Workspace).where(Workspace.slug == workspace_slug)
@@ -53,50 +53,25 @@ async def get_current_workspace(
             detail=get_localized_message("WORKSPACE_NOT_FOUND", request)
         )
     
-    # Check if user is a member of this workspace
-    statement = select(WorkspaceMember).where(
-        WorkspaceMember.workspace_id == workspace.id,
-        WorkspaceMember.user_id == current_user.id
-    )
-    membership = session.exec(statement).first()
-    
-    if not membership:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=get_localized_message("WORKSPACE_ACCESS_DENIED", request)
+    # Check if user is owner or member of this workspace
+    if workspace.owner_id == current_user.id:
+        # User is the owner, allow access
+        pass
+    else:
+        # Check if user is a member of this workspace
+        statement = select(WorkspaceMember).where(
+            WorkspaceMember.workspace_id == workspace.id,
+            WorkspaceMember.user_id == current_user.id
         )
+        membership = session.exec(statement).first()
+        
+        if not membership:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=get_localized_message("WORKSPACE_ACCESS_DENIED", request)
+            )
     
     return workspace
 
 
-async def get_workspace_membership(
-    workspace_slug: str,
-    request: Request,
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session)
-) -> WorkspaceMember:
-    """Get user's membership in a specific workspace"""
-    # Get workspace by slug
-    statement = select(Workspace).where(Workspace.slug == workspace_slug)
-    workspace = session.exec(statement).first()
-    
-    if not workspace:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=get_localized_message("WORKSPACE_NOT_FOUND", request)
-        )
-    
-    # Get user's membership
-    statement = select(WorkspaceMember).where(
-        WorkspaceMember.workspace_id == workspace.id,
-        WorkspaceMember.user_id == current_user.id
-    )
-    membership = session.exec(statement).first()
-    
-    if not membership:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=get_localized_message("WORKSPACE_ACCESS_DENIED", request)
-        )
-    
-    return membership 
+ 
