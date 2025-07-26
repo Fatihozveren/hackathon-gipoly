@@ -3,7 +3,6 @@ from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 import shortuuid
 
-
 class Workspace(SQLModel, table=True, extend_existing=True):
     __tablename__ = "workspace"
     id: Optional[int] = Field(default=None, primary_key=True)

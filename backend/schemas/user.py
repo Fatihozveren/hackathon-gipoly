@@ -16,6 +16,17 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    website_url: Optional[str] = None
+    store_platform: Optional[str] = None
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+
 class UserRead(BaseModel):
     id: int
     email: str

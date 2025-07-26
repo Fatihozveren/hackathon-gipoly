@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlmodel import SQLModel, Field, JSON, Column, Relationship
+from sqlmodel import SQLModel, Field, Text, Column, Relationship
 from typing import Optional
 
 
@@ -10,8 +10,8 @@ class TrendSuggestion(SQLModel, table=True, extend_existing=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     workspace_id: int = Field(foreign_key="workspace.id", index=True)
     user_id: int = Field(foreign_key="user.id", index=True)
-    request_data: dict = Field(sa_column=Column(JSON))
-    response_data: dict = Field(sa_column=Column(JSON))
+    request_data: str = Field(sa_column=Column(Text))
+    response_data: str = Field(sa_column=Column(Text))
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     # Relationships

@@ -9,6 +9,17 @@ class WorkspaceCreate(BaseModel):
     store_platform: Optional[str] = None
 
 
+class WorkspaceUpdate(BaseModel):
+    name: Optional[str] = None
+    store_url: Optional[str] = None
+    store_platform: Optional[str] = None
+
+
+class WorkspaceMemberCreate(BaseModel):
+    email: str
+    role: str = "member"
+
+
 class WorkspaceRead(BaseModel):
     id: int
     name: str
@@ -35,4 +46,4 @@ class WorkspaceWithMembers(BaseModel):
     store_platform: Optional[str] = None
     created_at: datetime
     owner_id: int
-    user_role: str  # Current user's role in this workspace 
+    user_role: str
