@@ -2,7 +2,6 @@
 Service for text analysis including word clouds and n-gram analysis.
 """
 
-import asyncio
 import re
 import base64
 import io
@@ -12,13 +11,11 @@ from datetime import datetime, timedelta
 from sqlmodel import Session, select
 import nltk
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 from nltk.util import ngrams
 from wordcloud import WordCloud
-from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
+matplotlib.use('Agg')
 
 from ..models.trends import TrendsData, WordCloudData, NgramAnalysis
 from ..utils.logging_config import get_logger
@@ -55,7 +52,6 @@ class TextAnalysisService:
             
         except Exception as e:
             logger.warning(f"Could not initialize NLTK: {e}")
-            # Fallback to basic stop words
             self.stop_words = {'ve', 'ile', 'için', 'bu', 'bir', 'da', 'de'}
     
     def preprocess_text(self, text: str) -> List[str]:
