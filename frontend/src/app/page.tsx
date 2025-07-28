@@ -1,20 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { GradientHeading } from '@/components/GradientHeading';
 import { ToolCard } from '@/components/ToolCard';
 
 import { LoginModal } from '@/components/LoginModal';
 import { RegisterModal } from '@/components/RegisterModal';
-import { useAuth } from '@/hooks/useAuth';
+import { WorkspaceModal } from '@/components/WorkspaceModal';
+import { UserDropdown } from '@/components/UserDropdown';
+import { UserSettingsModal } from '@/components/UserSettingsModal';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/hooks/useLanguage';
+import api from '@/services/api';
 
 export default function Home() {
+  const router = useRouter();
   const { language, setLanguage } = useLanguage();
   const { user, login, register, logout } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [workspaces, setWorkspaces] = useState<any[]>([]);
+  const [currentWorkspace, setCurrentWorkspace] = useState<any>(null);
   const [scrollY, setScrollY] = useState(0);
   const [visibleFeatures, setVisibleFeatures] = useState([false, false, false]);
 
@@ -79,7 +89,8 @@ export default function Home() {
       auth: {
         loginSignup: "Login / Sign Up",
         welcome: "Welcome",
-        logout: "Logout"
+        logout: "Logout",
+        selectWorkspace: "Select Workspace"
       }
     },
     tr: {
@@ -121,12 +132,106 @@ export default function Home() {
       auth: {
         loginSignup: "Giriş / Kayıt",
         welcome: "Hoş geldin",
-        logout: "Çıkış"
+        logout: "Çıkış",
+        selectWorkspace: "Çalışma Alanı Seç"
       }
     }
   };
 
   const t = translations[language];
+
+  const handleWorkspaceCreated = (workspace: any) => {
+    setCurrentWorkspace(workspace);
+    localStorage.setItem('gipoly-current-workspace', JSON.stringify(workspace));
+    
+    // Also update the workspaces array if it's a new workspace
+    setWorkspaces(prevWorkspaces => {
+      const exists = prevWorkspaces.find(w => w.id === workspace.id);
+      if (!exists) {
+        return [...prevWorkspaces, workspace];
+      }
+      return prevWorkspaces;
+    });
+  };
+
+  const handleShowSettings = () => {
+    setShowSettingsModal(true);
+  };
+
+  // Load workspaces when user is authenticated
+  useEffect(() => {
+    if (user) {
+      const loadWorkspaces = async () => {
+        try {
+          const response = await api.get('/api/workspaces/');
+          setWorkspaces(response.data);
+        } catch (error) {
+          console.error('Failed to load workspaces:', error);
+        }
+      };
+      loadWorkspaces();
+    }
+  }, [user]);
+
+  // Update current workspace when workspaces change
+  useEffect(() => {
+    if (workspaces.length > 0 && !currentWorkspace) {
+      const savedWorkspace = localStorage.getItem('gipoly-current-workspace');
+      if (savedWorkspace) {
+        try {
+          const workspace = JSON.parse(savedWorkspace);
+          // Check if saved workspace still exists in user's workspaces
+          const exists = workspaces.find((w: any) => w.id === workspace.id);
+          if (exists) {
+            setCurrentWorkspace(workspace);
+          } else {
+            // If saved workspace doesn't exist, select the first available one
+            setCurrentWorkspace(workspaces[0]);
+            localStorage.setItem('gipoly-current-workspace', JSON.stringify(workspaces[0]));
+          }
+        } catch (error) {
+          // If JSON parsing fails, select the first available workspace
+          setCurrentWorkspace(workspaces[0]);
+          localStorage.setItem('gipoly-current-workspace', JSON.stringify(workspaces[0]));
+        }
+      } else {
+        // No saved workspace, select the first available one
+        setCurrentWorkspace(workspaces[0]);
+        localStorage.setItem('gipoly-current-workspace', JSON.stringify(workspaces[0]));
+      }
+    }
+  }, [workspaces]); // Removed currentWorkspace from dependency array
+
+  const handleUserUpdated = (updatedUser: any) => {
+    // Update user in auth context
+    // This will be implemented when user settings are fully functional
+  };
+
+  const handleToolClick = (tool: any) => {
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+    
+    // Check if user has any workspaces
+    if (workspaces.length === 0) {
+      setShowWorkspaceModal(true);
+      return;
+    }
+    
+    // Check if a workspace is selected
+    if (!currentWorkspace) {
+      setShowWorkspaceModal(true);
+      return;
+    }
+    
+    // Tool'a göre yönlendirme
+    if (tool.id === 'trendagent') {
+      router.push('/trend-agent');
+    } else {
+      // Handle other tools here
+    }
+  };
 
   const tools = [
     {
@@ -176,23 +281,40 @@ export default function Home() {
               maxWidth: '1330px'
             }}
           >
-            <GradientHeading className="text-4xl font-bold">Gipoly</GradientHeading>
+            <div className="flex items-center space-x-8">
+              <GradientHeading className="text-4xl font-bold">Gipoly</GradientHeading>
+              
+              {user && (
+                <UserDropdown 
+                  user={user}
+                  onLogout={logout}
+                  onShowSettings={handleShowSettings}
+                  language={language}
+                />
+              )}
+            </div>
             
             <div className="flex items-center space-x-6">
-              <LanguageToggle language={language} onLanguageChange={setLanguage} />
-              
               {user ? (
-                <div className="flex items-center space-x-6">
-                  <span className="text-base text-gray-700">
-                    {t.auth.welcome}, {user.full_name || user.email}
-                  </span>
+                <>
+                  {/* Workspace Selector */}
                   <button
-                    onClick={logout}
-                    className="px-6 py-3 text-base font-medium text-gray-700 bg-gray-100 backdrop-blur-sm border border-gray-200 rounded-lg hover:bg-gray-200 hover:border-gray-300 hover:scale-105 transition-all duration-300"
+                    onClick={() => setShowWorkspaceModal(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-cyan-50 border border-cyan-200 rounded-lg hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-300"
                   >
-                    {t.auth.logout}
+                    <svg className="w-4 h-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <span className="text-sm font-medium text-cyan-700">
+                      {currentWorkspace ? currentWorkspace.name : t.auth.selectWorkspace}
+                    </span>
+                    <svg className="w-3 h-3 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </button>
-                </div>
+                  
+
+                </>
               ) : (
                 <button
                   onClick={() => setShowLoginModal(true)}
@@ -202,6 +324,8 @@ export default function Home() {
                   <span className="relative z-10">{t.auth.loginSignup}</span>
                 </button>
               )}
+              
+              <LanguageToggle language={language} onLanguageChange={setLanguage} />
             </div>
           </div>
         </div>
@@ -239,6 +363,8 @@ export default function Home() {
                   tool={tool}
                   language={language}
                   isAuthenticated={!!user}
+                  hasWorkspace={!!currentWorkspace}
+                  onClick={() => handleToolClick(tool)}
                 />
               </div>
             ))}
@@ -361,6 +487,25 @@ export default function Home() {
           }}
           onRegister={register}
           language={language}
+        />
+      )}
+
+      {showWorkspaceModal && (
+        <WorkspaceModal
+          isOpen={showWorkspaceModal}
+          onClose={() => setShowWorkspaceModal(false)}
+          onWorkspaceCreated={handleWorkspaceCreated}
+          language={language}
+        />
+      )}
+
+      {showSettingsModal && (
+        <UserSettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+          user={user}
+          language={language}
+          onUserUpdated={handleUserUpdated}
         />
       )}
     </div>

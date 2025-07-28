@@ -10,7 +10,6 @@ class TrendRequest(BaseModel):
     budget_range: Optional[str] = Field(None, description="Budget range (e.g., 'Low', 'Medium', 'High')")
     target_audience: Optional[str] = Field(None, description="Target audience (e.g., 'Young Adults', 'Parents', 'Professionals')")
     additional_notes: Optional[str] = Field(None, description="Additional requirements or preferences")
-    include_trends: bool = Field(default=True, description="Include Google Trends analysis")
     product_count: int = Field(default=3, ge=1, le=5, description="Number of product suggestions (1-5)")
     language: Optional[str] = Field("tr", description="Response language ('tr' for Turkish, 'en' for English)")
 
@@ -31,16 +30,6 @@ class ProductSuggestion(BaseModel):
     estimated_demand: str = Field(..., description="Estimated market demand")
 
 
-class GoogleTrendsData(BaseModel):
-    """Google Trends data model."""
-    keyword: str = Field(..., description="Search keyword")
-    trend_score: int = Field(..., ge=0, le=100, description="Trend score (0-100)")
-    interest_over_time: List[Dict[str, Any]] = Field(default_factory=list, description="Interest over time data")
-    related_queries: List[Dict[str, Any]] = Field(default_factory=list, description="Related search queries")
-    related_topics: List[Dict[str, Any]] = Field(default_factory=list, description="Related topics")
-    chart_data: Optional[str] = Field(None, description="Base64 encoded chart image")
-
-
 class TrendAnalysis(BaseModel):
     """Comprehensive trend analysis model."""
     category_analysis: str = Field(..., description="Overall category trend analysis")
@@ -53,7 +42,6 @@ class TrendAnalysis(BaseModel):
 class TrendResponse(BaseModel):
     """Enhanced response model for trend analysis results."""
     products: List[ProductSuggestion] = Field(..., description="Multiple product suggestions")
-    trends_data: Optional[GoogleTrendsData] = Field(None, description="Google Trends analysis")
     trend_analysis: TrendAnalysis = Field(..., description="Comprehensive trend analysis")
     summary: str = Field(..., description="Executive summary")
     next_steps: List[str] = Field(default_factory=list, description="Recommended next steps")
@@ -78,17 +66,4 @@ class TrendSuggestionRead(BaseModel):
     created_at: datetime
 
 
-class AIAgentRequest(BaseModel):
-    """AI Agent conversation request model."""
-    message: str = Field(..., description="User message to AI agent")
-    context: Optional[Dict[str, Any]] = Field(None, description="Conversation context")
-    workspace_slug: str = Field(..., description="Workspace identifier")
-
-
-class AIAgentResponse(BaseModel):
-    """AI Agent conversation response model."""
-    response: str = Field(..., description="AI agent response")
-    suggestions: List[str] = Field(default_factory=list, description="Suggested follow-up questions")
-    actions: List[Dict[str, Any]] = Field(default_factory=list, description="Suggested actions")
-    context: Dict[str, Any] = Field(default_factory=dict, description="Updated conversation context")
-    created_at: datetime = Field(default_factory=datetime.utcnow) 
+ 

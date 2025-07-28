@@ -53,7 +53,6 @@ class TrendAgent:
                 target_audience=request.target_audience or "",
                 additional_notes=request.additional_notes or "",
                 product_count=request.product_count or 2,
-                include_trends=request.include_trends,
                 trends_data=""
             )
             response = await self.llm.ainvoke(prompt)
@@ -95,10 +94,8 @@ class TrendAgent:
                 else:
                     return self._get_fallback_response(request)
             except Exception as e:
-                print(f"Error in generate_suggestion: {e}")
                 return self._get_fallback_response(request)
         except Exception as e:
-            print(f"Error in generate_suggestion outer: {e}")
             return self._get_fallback_response(request)
     
     def _parse_ai_response(self, response: str) -> Dict[str, Any]:

@@ -31,4 +31,22 @@ api.interceptors.response.use(
   }
 );
 
+// Workspace API functions
+export const workspaceAPI = {
+  // Get all workspaces for current user
+  getWorkspaces: () => api.get('/api/workspaces/'),
+  
+  // Create new workspace
+  createWorkspace: (data: any) => api.post('/api/workspaces/', data),
+  
+  // Update workspace
+  updateWorkspace: (slug: string, data: any) => api.put(`/api/workspaces/${slug}`, data),
+  
+  // Delete workspace
+  deleteWorkspace: (slug: string) => api.delete(`/api/workspaces/${slug}`),
+  
+  // Get specific workspace
+  getWorkspace: (slug: string) => api.get(`/api/workspaces/${slug}`),
+};
+
 export default api; 

@@ -41,6 +41,20 @@ def create_workspace(
             detail=get_localized_message("WORKSPACE_NAME_REQUIRED", request)
         )
     
+    # Check if workspace name already exists for this user
+    existing_workspace = session.exec(
+        select(Workspace).where(
+            Workspace.owner_id == current_user.id,
+            Workspace.name == workspace_data.name.strip()
+        )
+    ).first()
+    
+    if existing_workspace:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=get_localized_message("WORKSPACE_NAME_EXISTS", request)
+        )
+    
     # Create workspace
     workspace = Workspace(
         name=workspace_data.name.strip(),

@@ -12,12 +12,16 @@ interface ToolCardProps {
   tool: Tool;
   language: 'en' | 'tr';
   isAuthenticated: boolean;
+  hasWorkspace: boolean;
+  onClick: () => void;
 }
 
 export const ToolCard: React.FC<ToolCardProps> = ({ 
   tool, 
   language, 
-  isAuthenticated 
+  isAuthenticated,
+  hasWorkspace,
+  onClick
 }) => {
   const handleClick = () => {
     if (!isAuthenticated) {
@@ -46,7 +50,35 @@ export const ToolCard: React.FC<ToolCardProps> = ({
       }, 3000);
       return;
     }
-    console.log(`Opening ${tool.title}...`);
+    
+    if (!hasWorkspace) {
+      // Show workspace selection notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+      notification.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          <span>${language === 'tr' ? 'Lütfen bir çalışma alanı seçin' : 'Please select a workspace first'}</span>
+        </div>
+      `;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+      }, 100);
+      
+      setTimeout(() => {
+        notification.style.transform = 'translateX(full)';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+      return;
+    }
+    
+    onClick();
   };
 
   const getAnimatedIcon = (toolId: string) => {

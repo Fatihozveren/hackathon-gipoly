@@ -32,6 +32,10 @@ MESSAGES: Dict[str, Dict[str, str]] = {
         "en": "Workspace name is required.",
         "tr": "Çalışma alanı adı gereklidir."
     },
+    "WORKSPACE_NAME_EXISTS": {
+        "en": "A workspace with this name already exists.",
+        "tr": "Bu isimde bir çalışma alanı zaten mevcut."
+    },
     "WORKSPACE_SLUG_EXISTS": {
         "en": "Workspace with this slug already exists.",
         "tr": "Bu slug ile çalışma alanı zaten mevcut."
