@@ -34,6 +34,7 @@ def migrate_database():
         from models.user import User
         from models.workspace import Workspace, WorkspaceMember
         from tools.trend_agent.models import TrendSuggestion
+        from tools.seo_strategist.models import SEOAnalysis
         
         print("Models imported successfully")
         
@@ -41,8 +42,7 @@ def migrate_database():
         SQLModel.metadata.create_all(engine)
         
         print("✅ Database migration completed successfully!")
-        print("✅ TrendSuggestion table has been added to the database")
-        
+
     except Exception as e:
         print(f"❌ Migration failed: {e}")
         sys.exit(1)

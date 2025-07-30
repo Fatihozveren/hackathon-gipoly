@@ -42,6 +42,69 @@ interface URLAnalysisResult {
   seo_score: number;
 }
 
+// Helper functions for conditional rendering
+const hasValidData = (data: any, minLength: number = 1): boolean => {
+  if (!data) return false;
+  if (Array.isArray(data)) return data.length >= minLength;
+  if (typeof data === 'string') return data.trim().length >= minLength && data.trim() !== "Bilinmiyor";
+  if (typeof data === 'number') return data > 0;
+  if (typeof data === 'object') return Object.keys(data).length > 0;
+  return false;
+};
+
+const hasValidImpactAnalysis = (impactAnalysis: any): boolean => {
+  return impactAnalysis && 
+         (impactAnalysis.estimated_ctr_increase !== "Bilinmiyor" ||
+          impactAnalysis.estimated_conversion_increase !== "Bilinmiyor" ||
+          impactAnalysis.estimated_ranking_improvement !== "Bilinmiyor");
+};
+
+const hasValidImageOptimization = (imageOptimization: any): boolean => {
+  return imageOptimization && 
+         imageOptimization.image_count > 0 &&
+         imageOptimization.image_format !== "Bilinmiyor";
+};
+
+const hasValidAccessibility = (accessibility: any): boolean => {
+  return accessibility && 
+         accessibility.alt_text_coverage > 0 &&
+         accessibility.color_contrast !== "Bilinmiyor";
+};
+
+const hasValidMobileOptimization = (mobileOptimization: any): boolean => {
+  return mobileOptimization && 
+         mobileOptimization.mobile_speed !== "Bilinmiyor";
+};
+
+
+
+const hasValidPerformance = (performanceMetrics: any): boolean => {
+  return performanceMetrics && 
+         (performanceMetrics.core_web_vitals?.lcp_score > 0 ||
+          performanceMetrics.core_web_vitals?.cls_score > 0 ||
+          performanceMetrics.core_web_vitals?.fid_score > 0);
+};
+
+const hasValidCompetitiveAnalysis = (competitiveAnalysis: any): boolean => {
+  return competitiveAnalysis && 
+         competitiveAnalysis.competitiveness_score > 0 &&
+         competitiveAnalysis.market_position !== "Bilinmiyor";
+};
+
+const hasValidTitle = (title: any): boolean => {
+  return title && 
+         title.trim().length > 0 && 
+         title.trim() !== "Bilinmiyor" &&
+         title.trim() !== "null";
+};
+
+const hasValidDescription = (description: any): boolean => {
+  return description && 
+         description.trim().length > 0 && 
+         description.trim() !== "Bilinmiyor" &&
+         description.trim() !== "null";
+};
+
 export default function SEOStrategistPage() {
   const router = useRouter();
   const { user, logout, isLoading } = useAuth();
@@ -118,6 +181,7 @@ export default function SEOStrategistPage() {
         ...urlForm,
         language: language
       });
+
       setResult(response.data);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'URL analizi sırasında bir hata oluştu');
@@ -205,6 +269,11 @@ export default function SEOStrategistPage() {
   };
 
   const t = translations[language as keyof typeof translations];
+
+  // Language-specific content
+  const getLocalizedContent = (tr: string, en: string) => {
+    return language === 'tr' ? tr : en;
+  };
 
   if (isLoading) {
     return (
@@ -371,6 +440,22 @@ export default function SEOStrategistPage() {
           </div>
         )}
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-500 border-t-transparent mx-auto mb-4"></div>
+              <p className="text-xl font-semibold text-gray-700 mb-2">{t.loading}</p>
+              <p className="text-gray-500">
+                {getLocalizedContent(
+                  'Raporunuz 1 dakika içerisinde hazır olacaktır',
+                  'Your report will be ready within 1 minute'
+                )}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Error Display */}
         {error && (
           <div className="max-w-2xl mx-auto mt-6">
@@ -461,20 +546,22 @@ export default function SEOStrategistPage() {
             {selectedType === 'url' && 'product_analysis' in result && (
               <div className="space-y-6">
                 {/* Overall SEO Score */}
-                <div className="bg-white rounded-xl p-6 shadow-lg">
-                  <h3 className="text-xl font-semibold mb-4">Genel SEO Skoru</h3>
-                  <div className="flex items-center space-x-4">
-                    <div className="text-4xl font-bold text-cyan-600">{result.seo_score || 0}</div>
-                    <div className="flex-1">
-                      <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div 
-                          className="bg-gradient-to-r from-cyan-500 to-fuchsia-500 h-3 rounded-full transition-all duration-500"
-                          style={{ width: `${result.seo_score || 0}%` }}
-                        />
+                {(result.seo_score && result.seo_score > 0) && (
+                  <div className="bg-white rounded-xl p-6 shadow-lg">
+                    <h3 className="text-xl font-semibold mb-4">Genel SEO Skoru</h3>
+                    <div className="flex items-center space-x-4">
+                      <div className="text-4xl font-bold text-cyan-600">{result.seo_score}</div>
+                      <div className="flex-1">
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div 
+                            className="bg-gradient-to-r from-cyan-500 to-fuchsia-500 h-3 rounded-full transition-all duration-500"
+                            style={{ width: `${result.seo_score}%` }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Charts Section */}
                 <SEOCharts 
@@ -488,18 +575,24 @@ export default function SEOStrategistPage() {
                   <div className="bg-white rounded-xl p-6 shadow-lg">
                     <h3 className="text-xl font-semibold mb-4">Ürün Analizi</h3>
                     <div className="space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Mevcut Ürün Adı</h4>
-                        <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">{result.product_analysis.product_name}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Önerilen SEO Ürün Adı</h4>
-                        <p className="text-green-600 bg-green-50 p-3 rounded-lg">{result.product_analysis.suggested_product_name}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Önerilen Ürün Açıklaması</h4>
-                        <p className="text-gray-600 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">{result.product_analysis.suggested_description}</p>
-                      </div>
+                      {hasValidTitle(result.product_analysis.product_name) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Mevcut Ürün Adı</h4>
+                          <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">{result.product_analysis.product_name}</p>
+                        </div>
+                      )}
+                      {hasValidTitle(result.product_analysis.suggested_product_name) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Önerilen SEO Ürün Adı</h4>
+                          <p className="text-green-600 bg-green-50 p-3 rounded-lg">{result.product_analysis.suggested_product_name}</p>
+                        </div>
+                      )}
+                      {hasValidDescription(result.product_analysis.suggested_description) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Önerilen Ürün Açıklaması</h4>
+                          <p className="text-gray-600 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">{result.product_analysis.suggested_description}</p>
+                        </div>
+                      )}
                       <div>
                         <h4 className="font-semibold text-gray-700 mb-2">Hedef Anahtar Kelimeler</h4>
                         <div className="flex flex-wrap gap-2">
@@ -547,125 +640,134 @@ export default function SEOStrategistPage() {
                   <div className="bg-white rounded-xl p-6 shadow-lg">
                     <h3 className="text-xl font-semibold mb-4">SEO Optimizasyonu</h3>
                     <div className="space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Mevcut Başlık</h4>
-                        <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">{result.seo_optimization.title_optimization?.current_title}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Önerilen SEO Başlığı</h4>
-                        <p className="text-green-600 bg-green-50 p-3 rounded-lg">{result.seo_optimization.title_optimization?.suggested_title}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Önerilen Meta Açıklama</h4>
-                        <p className="text-green-600 bg-green-50 p-3 rounded-lg">{result.seo_optimization.meta_description?.suggested_description}</p>
+                      {hasValidTitle(result.seo_optimization.title_optimization?.current_title) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Mevcut Başlık</h4>
+                          <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">{result.seo_optimization.title_optimization?.current_title}</p>
+                        </div>
+                      )}
+                      {hasValidTitle(result.seo_optimization.title_optimization?.suggested_title) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Önerilen SEO Başlığı</h4>
+                          <p className="text-green-600 bg-green-50 p-3 rounded-lg">{result.seo_optimization.title_optimization?.suggested_title}</p>
+                        </div>
+                      )}
+                      {hasValidDescription(result.seo_optimization.meta_description?.suggested_description) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Önerilen Meta Açıklama</h4>
+                          <p className="text-green-600 bg-green-50 p-3 rounded-lg">{result.seo_optimization.meta_description?.suggested_description}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                                {/* User Experience Analysis */}
+                {result.user_experience && result.user_experience.trust_elements?.suggested_trust_elements?.length > 0 && (
+                  <div className="bg-white rounded-xl p-6 shadow-lg">
+                    <h3 className="text-xl font-semibold mb-4">
+                      {getLocalizedContent('Dikkat Edilmesi Gerekenler', 'Important Considerations')}
+                    </h3>
+                    <div>
+                      <h4 className="font-semibold text-gray-700 mb-3">Önerilen Güven Unsurları</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {result.user_experience.trust_elements?.suggested_trust_elements?.map((element: string, index: number) => (
+                          <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <p className="text-blue-800 font-medium">{element}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* User Experience Analysis */}
-                {result.user_experience && (
+                {/* FAQ Suggestions */}
+                {result.user_experience?.faq_suggestions && result.user_experience.faq_suggestions.length > 0 && (
                   <div className="bg-white rounded-xl p-6 shadow-lg">
-                    <h3 className="text-xl font-semibold mb-4">Kullanıcı Deneyimi</h3>
+                    <h3 className="text-xl font-semibold mb-4">Sık Sorulan Sorular (SSS) Önerileri</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {result.user_experience.faq_suggestions.map((faq: string, index: number) => (
+                        <div key={index} className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-100">
+                          <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-gray-800 font-medium">{faq}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Competitive Analysis */}
+                {hasValidCompetitiveAnalysis(result.competitive_analysis) && (
+                  <div className="bg-white rounded-xl p-6 shadow-lg">
+                    <h3 className="text-xl font-semibold mb-4">
+                      {getLocalizedContent('Rakip Analizi', 'Competitive Analysis')}
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Call-to-Action</h4>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">CTA Etkinliği: {result.user_experience.cta_analysis?.cta_effectiveness}/100</p>
-                          <div className="mt-2">
-                            <p className="text-sm font-medium text-gray-700">Önerilen CTA'lar:</p>
-                            <ul className="text-sm text-gray-600 mt-1">
-                              {result.user_experience.cta_analysis?.suggested_ctas?.map((cta: string, index: number) => (
-                                <li key={index} className="text-green-600">• {cta}</li>
-                              ))}
-                            </ul>
+                        <h4 className="font-semibold text-gray-700 mb-3">Pazar Pozisyonu</h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Rekabet Skoru:</span>
+                            <span className="font-semibold text-blue-600">{result.competitive_analysis.competitiveness_score}/100</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Pazar Pozisyonu:</span>
+                            <span className="font-semibold text-purple-600">{result.competitive_analysis.market_position}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">İyileştirme Potansiyeli:</span>
+                            <span className="font-semibold text-green-600">{result.competitive_analysis.improvement_potential}</span>
                           </div>
                         </div>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Güven Unsurları</h4>
+                        <h4 className="font-semibold text-gray-700 mb-3">Rekabet Avantajları</h4>
                         <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Yorumlar: {result.user_experience.trust_elements?.has_reviews ? 'Mevcut' : 'Eksik'}</p>
-                          <p className="text-sm text-gray-600">Puanlama: {result.user_experience.trust_elements?.has_ratings ? 'Mevcut' : 'Eksik'}</p>
-                          <div className="mt-2">
-                            <p className="text-sm font-medium text-gray-700">Önerilen Güven Unsurları:</p>
-                            <ul className="text-sm text-gray-600 mt-1">
-                              {result.user_experience.trust_elements?.suggested_trust_elements?.map((element: string, index: number) => (
-                                <li key={index} className="text-blue-600">• {element}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="md:col-span-2">
-                        <h4 className="font-semibold text-gray-700 mb-2">SSS Önerileri</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {result.user_experience.faq_suggestions?.map((faq: string, index: number) => (
-                            <div key={index} className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                              {faq}
+                          {result.competitive_analysis.competitive_advantages?.map((advantage: string, index: number) => (
+                            <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-3">
+                              <p className="text-green-800 font-medium">✓ {advantage}</p>
                             </div>
                           ))}
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* Review Analysis */}
-                {result.user_experience?.review_analysis && (
-                  <div className="bg-white rounded-xl p-6 shadow-lg">
-                    <h3 className="text-xl font-semibold mb-4">Yorum Analizi</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Genel İstatistikler</h4>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Toplam Yorum: <span className="font-semibold text-blue-600">{result.user_experience.review_analysis.review_count}</span></p>
-                          <p className="text-sm text-gray-600">Ortalama Puan: <span className="font-semibold text-green-600">{result.user_experience.review_analysis.average_rating}/5</span></p>
-                          <p className="text-sm text-gray-600">Detaylı Yorumlar: <span className="font-semibold text-purple-600">{result.user_experience.review_analysis.review_quality?.detailed_reviews}</span></p>
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Duygu Analizi</h4>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Pozitif: <span className="font-semibold text-green-600">{result.user_experience.review_analysis.sentiment_analysis?.positive_percentage}%</span></p>
-                          <p className="text-sm text-gray-600">Nötr: <span className="font-semibold text-gray-600">{result.user_experience.review_analysis.sentiment_analysis?.neutral_percentage}%</span></p>
-                          <p className="text-sm text-gray-600">Negatif: <span className="font-semibold text-red-600">{result.user_experience.review_analysis.sentiment_analysis?.negative_percentage}%</span></p>
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Yorum Kalitesi</h4>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Ortalama Uzunluk: <span className="font-semibold text-blue-600">{result.user_experience.review_analysis.review_quality?.review_length_avg} karakter</span></p>
-                          <p className="text-sm text-gray-600">Doğrulanmış Alışveriş: <span className="font-semibold text-green-600">{result.user_experience.review_analysis.review_quality?.verified_purchases}</span></p>
-                        </div>
-                      </div>
-                    </div>
-                    {result.user_experience.review_analysis.sentiment_analysis?.common_positive_themes && (
+                    
+                    {result.competitive_analysis.competitor_insights && result.competitive_analysis.competitor_insights.length > 0 && (
                       <div className="mt-6">
-                        <h4 className="font-semibold text-gray-700 mb-2">Pozitif Temalar</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {result.user_experience.review_analysis.sentiment_analysis.common_positive_themes.map((theme: string, index: number) => (
-                            <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                              {theme}
-                            </span>
+                        <h4 className="font-semibold text-gray-700 mb-3">Rakip İçgörüleri</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {result.competitive_analysis.competitor_insights.map((insight: string, index: number) => (
+                            <div key={index} className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                              <p className="text-yellow-800 font-medium">• {insight}</p>
+                            </div>
                           ))}
                         </div>
                       </div>
                     )}
-                    {result.user_experience.review_analysis.sentiment_analysis?.common_negative_themes && (
-                      <div className="mt-4">
-                        <h4 className="font-semibold text-gray-700 mb-2">Negatif Temalar</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {result.user_experience.review_analysis.sentiment_analysis.common_negative_themes.map((theme: string, index: number) => (
-                            <span key={index} className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
-                              {theme}
-                            </span>
+
+                    {result.competitive_analysis.market_opportunities && result.competitive_analysis.market_opportunities.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="font-semibold text-gray-700 mb-3">Pazar Fırsatları</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {result.competitive_analysis.market_opportunities.map((opportunity: string, index: number) => (
+                            <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <p className="text-blue-800 font-medium">💡 {opportunity}</p>
+                            </div>
                           ))}
                         </div>
                       </div>
-                                         )}
-                   </div>
-                 )}
+                    )}
+                  </div>
+                )}
 
                 {/* Technical SEO */}
                 {result.technical_seo && (
@@ -688,41 +790,49 @@ export default function SEOStrategistPage() {
                           <p className="text-sm text-gray-600">Liste Kullanımı: {result.technical_seo.content_structure?.list_usage}</p>
                         </div>
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Görsel Optimizasyonu</h4>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Görsel Sayısı: {result.technical_seo.image_optimization?.image_count}</p>
-                          <p className="text-sm text-gray-600">Alt Metin Kalitesi: {result.technical_seo.image_optimization?.alt_text_quality}/100</p>
-                          <p className="text-sm text-gray-600">Görsel Formatı: {result.technical_seo.image_optimization?.image_format}</p>
+                      {hasValidImageOptimization(result.technical_seo.image_optimization) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Görsel Optimizasyonu</h4>
+                          <div className="space-y-2">
+                            <p className="text-sm text-gray-600">Görsel Sayısı: {result.technical_seo.image_optimization?.image_count}</p>
+                            <p className="text-sm text-gray-600">Alt Metin Kalitesi: {result.technical_seo.image_optimization?.alt_text_quality}/100</p>
+                            <p className="text-sm text-gray-600">Görsel Formatı: {result.technical_seo.image_optimization?.image_format}</p>
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Performans Metrikleri</h4>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Tahmini Yükleme: {result.technical_seo.performance_metrics?.estimated_load_time}</p>
-                          <p className="text-sm text-gray-600">LCP Skoru: {result.technical_seo.performance_metrics?.core_web_vitals?.lcp_score}/100</p>
-                          <p className="text-sm text-gray-600">CLS Skoru: {result.technical_seo.performance_metrics?.core_web_vitals?.cls_score}/100</p>
-                          <p className="text-sm text-gray-600">FID Skoru: {result.technical_seo.performance_metrics?.core_web_vitals?.fid_score}/100</p>
+                      )}
+                      {hasValidPerformance(result.technical_seo.performance_metrics) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Performans Metrikleri</h4>
+                          <div className="space-y-2">
+                            <p className="text-sm text-gray-600">Tahmini Yükleme: {result.technical_seo.performance_metrics?.estimated_load_time}</p>
+                            <p className="text-sm text-gray-600">LCP Skoru: {result.technical_seo.performance_metrics?.core_web_vitals?.lcp_score}/100</p>
+                            <p className="text-sm text-gray-600">CLS Skoru: {result.technical_seo.performance_metrics?.core_web_vitals?.cls_score}/100</p>
+                            <p className="text-sm text-gray-600">FID Skoru: {result.technical_seo.performance_metrics?.core_web_vitals?.fid_score}/100</p>
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Mobil Optimizasyon</h4>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Responsive Tasarım: {result.technical_seo.mobile_optimization?.responsive_design ? 'Evet' : 'Hayır'}</p>
-                          <p className="text-sm text-gray-600">Mobil Dostu: {result.technical_seo.mobile_optimization?.mobile_friendly ? 'Evet' : 'Hayır'}</p>
-                          <p className="text-sm text-gray-600">Touch Hedefleri: {result.technical_seo.mobile_optimization?.touch_targets}</p>
-                          <p className="text-sm text-gray-600">Mobil Hız: {result.technical_seo.mobile_optimization?.mobile_speed}</p>
+                      )}
+                      {hasValidMobileOptimization(result.technical_seo.mobile_optimization) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Mobil Optimizasyon</h4>
+                          <div className="space-y-2">
+                            <p className="text-sm text-gray-600">Responsive Tasarım: {result.technical_seo.mobile_optimization?.responsive_design ? 'Evet' : 'Hayır'}</p>
+                            <p className="text-sm text-gray-600">Mobil Dostu: {result.technical_seo.mobile_optimization?.mobile_friendly ? 'Evet' : 'Hayır'}</p>
+                            <p className="text-sm text-gray-600">Touch Hedefleri: {result.technical_seo.mobile_optimization?.touch_targets}</p>
+                            <p className="text-sm text-gray-600">Mobil Hız: {result.technical_seo.mobile_optimization?.mobile_speed}</p>
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Erişilebilirlik</h4>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Alt Metin Kapsamı: {result.technical_seo.accessibility?.alt_text_coverage}%</p>
-                          <p className="text-sm text-gray-600">Renk Kontrastı: {result.technical_seo.accessibility?.color_contrast}</p>
-                          <p className="text-sm text-gray-600">Klavye Navigasyonu: {result.technical_seo.accessibility?.keyboard_navigation ? 'Evet' : 'Hayır'}</p>
-                          <p className="text-sm text-gray-600">Ekran Okuyucu: {result.technical_seo.accessibility?.screen_reader_compatibility}</p>
+                      )}
+                      {hasValidAccessibility(result.technical_seo.accessibility) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Erişilebilirlik</h4>
+                          <div className="space-y-2">
+                            <p className="text-sm text-gray-600">Alt Metin Kapsamı: {result.technical_seo.accessibility?.alt_text_coverage}%</p>
+                            <p className="text-sm text-gray-600">Renk Kontrastı: {result.technical_seo.accessibility?.color_contrast}</p>
+                            <p className="text-sm text-gray-600">Klavye Navigasyonu: {result.technical_seo.accessibility?.keyboard_navigation ? 'Evet' : 'Hayır'}</p>
+                            <p className="text-sm text-gray-600">Ekran Okuyucu: {result.technical_seo.accessibility?.screen_reader_compatibility}</p>
+                          </div>
                         </div>
-                      </div>
+                      )}
                       <div className="md:col-span-2">
                         <h4 className="font-semibold text-gray-700 mb-2">Önerilen Başlık Yapısı</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -740,7 +850,7 @@ export default function SEOStrategistPage() {
 
 
                 {/* Impact Analysis */}
-                {result.impact_analysis && (
+                {hasValidImpactAnalysis(result.impact_analysis) && (
                   <div className="bg-white rounded-xl p-6 shadow-lg">
                     <h3 className="text-xl font-semibold mb-4">Tahmini Etki Analizi</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -753,51 +863,77 @@ export default function SEOStrategistPage() {
                           <p className="text-sm text-gray-600">Sonuç Görme Süresi: <span className="text-blue-600 font-semibold">{result.impact_analysis.time_to_see_results}</span></p>
                         </div>
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Rekabet Analizi</h4>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Pazar Pozisyonu: <span className="text-purple-600 font-semibold">{result.competitive_analysis?.market_position}</span></p>
-                          <p className="text-sm text-gray-600">Rekabet Skoru: <span className="text-orange-600 font-semibold">{result.competitive_analysis?.competitiveness_score}/100</span></p>
-                          <p className="text-sm text-gray-600">İyileştirme Potansiyeli: <span className="text-green-600 font-semibold">{result.competitive_analysis?.improvement_potential}</span></p>
+                      {hasValidCompetitiveAnalysis(result.competitive_analysis) && (
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-2">Rekabet Analizi</h4>
+                          <div className="space-y-2">
+                            <p className="text-sm text-gray-600">Pazar Pozisyonu: <span className="text-purple-600 font-semibold">{result.competitive_analysis?.market_position}</span></p>
+                            <p className="text-sm text-gray-600">Rekabet Skoru: <span className="text-orange-600 font-semibold">{result.competitive_analysis?.competitiveness_score}/100</span></p>
+                            <p className="text-sm text-gray-600">İyileştirme Potansiyeli: <span className="text-green-600 font-semibold">{result.competitive_analysis?.improvement_potential}</span></p>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 )}
 
                 {/* Action Items */}
                 {result.action_items && Object.keys(result.action_items).length > 0 && (
-                  <div className="bg-white rounded-xl p-6 shadow-lg">
-                    <h3 className="text-xl font-semibold mb-4">{t.actionItems}</h3>
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-6 shadow-lg">
+                    <div className="flex items-center mb-4">
+                      <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-orange-800">
+                        {getLocalizedContent('Hemen Yapılması Gerekenler', 'Action Items')}
+                      </h3>
+                    </div>
                     <div className="space-y-4">
                       {result.action_items.high_priority && (
                         <div>
-                          <h4 className="font-semibold text-red-600 mb-2">Yüksek Öncelik</h4>
-                          <ul className="space-y-1">
+                          <h4 className="font-bold text-red-700 mb-3 flex items-center">
+                            <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                            Yüksek Öncelik
+                          </h4>
+                          <div className="space-y-2">
                             {result.action_items.high_priority.map((item: string, index: number) => (
-                              <li key={index} className="text-sm">• {item}</li>
+                              <div key={index} className="bg-white border border-red-200 rounded-lg p-3 shadow-sm">
+                                <p className="text-red-800 font-medium">• {item}</p>
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       )}
                       {result.action_items.medium_priority && (
                         <div>
-                          <h4 className="font-semibold text-yellow-600 mb-2">Orta Öncelik</h4>
-                          <ul className="space-y-1">
+                          <h4 className="font-bold text-orange-700 mb-3 flex items-center">
+                            <span className="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
+                            Orta Öncelik
+                          </h4>
+                          <div className="space-y-2">
                             {result.action_items.medium_priority.map((item: string, index: number) => (
-                              <li key={index} className="text-sm">• {item}</li>
+                              <div key={index} className="bg-white border border-orange-200 rounded-lg p-3 shadow-sm">
+                                <p className="text-orange-800 font-medium">• {item}</p>
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       )}
                       {result.action_items.low_priority && (
                         <div>
-                          <h4 className="font-semibold text-green-600 mb-2">Düşük Öncelik</h4>
-                          <ul className="space-y-1">
+                          <h4 className="font-bold text-green-700 mb-3 flex items-center">
+                            <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                            Düşük Öncelik
+                          </h4>
+                          <div className="space-y-2">
                             {result.action_items.low_priority.map((item: string, index: number) => (
-                              <li key={index} className="text-sm">• {item}</li>
+                              <div key={index} className="bg-white border border-green-200 rounded-lg p-3 shadow-sm">
+                                <p className="text-green-800 font-medium">• {item}</p>
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       )}
                     </div>

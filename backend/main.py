@@ -9,6 +9,7 @@ from database import init_db
 from routers.auth import router as auth_router
 from routers.workspaces import router as workspaces_router
 from tools.trend_agent.router import router as trend_agent_router
+from tools.seo_strategist.router import router as seo_strategist_router
 from utils.logging_config import setup_logging, get_logger
 from utils.rate_limiting import setup_rate_limiting
 from utils.exception_handlers import setup_exception_handlers
@@ -61,6 +62,7 @@ setup_exception_handlers(app)
 app.include_router(auth_router)
 app.include_router(workspaces_router)
 app.include_router(trend_agent_router)
+app.include_router(seo_strategist_router)
 
 
 @app.get("/")

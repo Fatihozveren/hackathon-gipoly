@@ -29,24 +29,47 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export const SegmentScoresChart: React.FC<{ data: any }> = ({ data }) => {
   const chartData = [
-    { name: 'İçerik SEO', value: data.content_seo || 0 },
-    { name: 'Teknik SEO', value: data.technical_seo || 0 },
-    { name: 'Kullanıcı Deneyimi', value: data.user_experience || 0 },
-    { name: 'Performans', value: data.performance || 0 },
+    { name: 'İçerik SEO', value: data.content_seo || 0, color: '#3B82F6', icon: '📝' },
+    { name: 'Teknik SEO', value: data.technical_seo || 0, color: '#10B981', icon: '⚙️' },
+    { name: 'Kullanıcı Deneyimi', value: data.user_experience || 0, color: '#F59E0B', icon: '👥' },
+    { name: 'Performans', value: data.performance || 0, color: '#EF4444', icon: '🚀' },
   ];
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-lg">
       <h3 className="text-xl font-semibold mb-4">Segment Skorları</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis domain={[0, 100]} />
-          <Tooltip />
-          <Bar dataKey="value" fill="#3B82F6" />
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {chartData.map((item, index) => (
+          <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl">{item.icon}</span>
+                <span className="font-medium text-gray-800">{item.name}</span>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold" style={{ color: item.color }}>
+                  {item.value}
+                </div>
+                <div className="text-xs text-gray-500">/100</div>
+              </div>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="h-2 rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${item.value}%`,
+                  backgroundColor: item.color
+                }}
+              />
+            </div>
+            <div className="mt-2 text-xs text-gray-600">
+              {item.value >= 80 ? 'Mükemmel' : 
+               item.value >= 60 ? 'İyi' : 
+               item.value >= 40 ? 'Orta' : 'İyileştirme Gerekli'}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
@@ -111,40 +134,92 @@ export const SentimentChart: React.FC<{ data: any }> = ({ data }) => {
 
 export const PerformanceRadarChart: React.FC<{ data: any }> = ({ data }) => {
   const chartData = [
-    { subject: 'LCP', A: data.core_web_vitals?.lcp_score || 0, fullMark: 100 },
-    { subject: 'CLS', A: data.core_web_vitals?.cls_score || 0, fullMark: 100 },
-    { subject: 'FID', A: data.core_web_vitals?.fid_score || 0, fullMark: 100 },
-    { subject: 'Mobil Hız', A: data.page_speed_analysis?.mobile_speed_score || 0, fullMark: 100 },
-    { subject: 'Desktop Hız', A: data.page_speed_analysis?.desktop_speed_score || 0, fullMark: 100 },
+    { 
+      name: 'LCP', 
+      fullName: 'Largest Contentful Paint',
+      description: 'Sayfanın ana içeriğinin yüklenme süresi',
+      value: data.core_web_vitals?.lcp_score || 0, 
+      color: '#3B82F6' 
+    },
+    { 
+      name: 'CLS', 
+      fullName: 'Cumulative Layout Shift',
+      description: 'Sayfa yüklenirken içeriğin kayma miktarı',
+      value: data.core_web_vitals?.cls_score || 0, 
+      color: '#10B981' 
+    },
+    { 
+      name: 'FID', 
+      fullName: 'First Input Delay',
+      description: 'İlk kullanıcı etkileşimine yanıt süresi',
+      value: data.core_web_vitals?.fid_score || 0, 
+      color: '#F59E0B' 
+    },
   ];
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-lg">
-      <h3 className="text-xl font-semibold mb-4">Performans Metrikleri</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey="subject" />
-          <PolarRadiusAxis angle={30} domain={[0, 100]} />
-          <Radar name="Skor" dataKey="A" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-          <Tooltip />
-        </RadarChart>
-      </ResponsiveContainer>
+      <h3 className="text-xl font-semibold mb-4">Web Performans Metrikleri</h3>
+      <div className="space-y-4">
+        {chartData.map((item, index) => (
+          <div key={index} className="space-y-2">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                  <div className="group relative">
+                    <svg className="w-4 h-4 text-gray-400 cursor-help" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    </svg>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                      <div className="font-semibold">{item.fullName}</div>
+                      <div className="text-gray-300">{item.description}</div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <span className="text-sm font-semibold" style={{ color: item.color }}>
+                {item.value}/100
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="h-2 rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${item.value}%`,
+                  backgroundColor: item.color
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
+};
+
+// Helper functions for conditional rendering
+const hasValidSegmentScores = (segmentScores: any): boolean => {
+  return segmentScores && 
+         (segmentScores.content_seo > 0 || 
+          segmentScores.technical_seo > 0 || 
+          segmentScores.user_experience > 0 || 
+          segmentScores.performance > 0);
+};
+
+const hasValidPerformance = (performanceMetrics: any): boolean => {
+  return performanceMetrics && 
+         (performanceMetrics.core_web_vitals?.lcp_score > 0 ||
+          performanceMetrics.core_web_vitals?.cls_score > 0 ||
+          performanceMetrics.core_web_vitals?.fid_score > 0);
 };
 
 export const SEOCharts: React.FC<SEOChartsProps> = ({ segmentScores, reviewAnalysis, performanceMetrics }) => {
   return (
     <div className="space-y-6">
-      {segmentScores && <SegmentScoresChart data={segmentScores} />}
-      {reviewAnalysis && reviewAnalysis.review_count > 0 && (
-        <>
-          <ReviewRatingChart data={reviewAnalysis} />
-          <SentimentChart data={reviewAnalysis} />
-        </>
-      )}
-      {performanceMetrics && <PerformanceRadarChart data={performanceMetrics} />}
+      {hasValidSegmentScores(segmentScores) && <SegmentScoresChart data={segmentScores} />}
+      {hasValidPerformance(performanceMetrics) && <PerformanceRadarChart data={performanceMetrics} />}
     </div>
   );
 }; 
