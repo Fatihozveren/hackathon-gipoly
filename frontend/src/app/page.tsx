@@ -228,6 +228,8 @@ export default function Home() {
     // Tool'a göre yönlendirme
     if (tool.id === 'trendagent') {
       router.push('/trend-agent');
+    } else if (tool.id === 'seo') {
+      router.push('/seo-strategist');
     } else {
       // Handle other tools here
     }
