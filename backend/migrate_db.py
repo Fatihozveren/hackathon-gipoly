@@ -35,6 +35,7 @@ def migrate_database():
         from models.workspace import Workspace, WorkspaceMember
         from tools.trend_agent.models import TrendSuggestion
         from tools.seo_strategist.models import SEOAnalysis
+        from tools.adcreative.models import AdCreativeAnalysis
         
         print("Models imported successfully")
         

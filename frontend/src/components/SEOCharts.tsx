@@ -29,10 +29,10 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export const SegmentScoresChart: React.FC<{ data: any }> = ({ data }) => {
   const chartData = [
-    { name: 'İçerik SEO', value: data.content_seo || 0, color: '#3B82F6', icon: '📝' },
-    { name: 'Teknik SEO', value: data.technical_seo || 0, color: '#10B981', icon: '⚙️' },
-    { name: 'Kullanıcı Deneyimi', value: data.user_experience || 0, color: '#F59E0B', icon: '👥' },
-    { name: 'Performans', value: data.performance || 0, color: '#EF4444', icon: '🚀' },
+    { name: 'İçerik SEO', value: data.content_seo || 0, color: '#3B82F6' },
+    { name: 'Teknik SEO', value: data.technical_seo || 0, color: '#10B981' },
+    { name: 'Kullanıcı Deneyimi', value: data.user_experience || 0, color: '#F59E0B' },
+    { name: 'Performans', value: data.performance || 0, color: '#EF4444' },
   ];
 
   return (
@@ -43,7 +43,6 @@ export const SegmentScoresChart: React.FC<{ data: any }> = ({ data }) => {
           <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
-                <span className="text-2xl">{item.icon}</span>
                 <span className="font-medium text-gray-800">{item.name}</span>
               </div>
               <div className="text-right">

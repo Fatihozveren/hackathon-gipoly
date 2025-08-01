@@ -47,8 +47,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     try {
       await onLogin(email, password);
       onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+    } catch (error) {
     } finally {
       setIsLoading(false);
     }
@@ -111,11 +110,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
           </div>
 
-          {error && (
-            <div className="text-red-600 text-sm text-center bg-red-50 border border-red-200 rounded-xl p-3 backdrop-blur-sm">
-              {error}
-            </div>
-          )}
+          {/* Error handling moved to parent component via notification */}
 
           <button
             type="submit"

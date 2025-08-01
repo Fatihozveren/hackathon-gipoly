@@ -1,12 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async rewrites() {
+  // Disable service worker in development
+  async headers() {
     return [
       {
-        source: '/api/:path*',
-        destination: 'http://localhost:8000/:path*',
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+        ],
       },
     ];
+  },
+  // Disable static optimization for development
+  experimental: {
+    esmExternals: false,
   },
 };
 

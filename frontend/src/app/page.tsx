@@ -11,6 +11,7 @@ import { RegisterModal } from '@/components/RegisterModal';
 import { WorkspaceModal } from '@/components/WorkspaceModal';
 import { UserDropdown } from '@/components/UserDropdown';
 import { UserSettingsModal } from '@/components/UserSettingsModal';
+import { Notification } from '@/components/Notification';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/hooks/useLanguage';
 import api from '@/services/api';
@@ -19,6 +20,28 @@ export default function Home() {
   const router = useRouter();
   const { language, setLanguage } = useLanguage();
   const { user, login, register, logout } = useAuth();
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({
+      message,
+      type,
+      isVisible: true
+    });
+  };
+
+  const hideNotification = () => {
+    setNotification(prev => ({ ...prev, isVisible: false }));
+  };
+
+  const loadWorkspaces = async () => {
+    try {
+      const response = await api.get('/api/workspaces/');
+      setWorkspaces(response.data);
+    } catch (error) {
+      console.error('Failed to load workspaces:', error);
+    }
+  };
+
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
@@ -27,6 +50,15 @@ export default function Home() {
   const [currentWorkspace, setCurrentWorkspace] = useState<any>(null);
   const [scrollY, setScrollY] = useState(0);
   const [visibleFeatures, setVisibleFeatures] = useState([false, false, false]);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -161,14 +193,6 @@ export default function Home() {
   // Load workspaces when user is authenticated
   useEffect(() => {
     if (user) {
-      const loadWorkspaces = async () => {
-        try {
-          const response = await api.get('/api/workspaces/');
-          setWorkspaces(response.data);
-        } catch (error) {
-          console.error('Failed to load workspaces:', error);
-        }
-      };
       loadWorkspaces();
     }
   }, [user]);
@@ -230,6 +254,8 @@ export default function Home() {
       router.push('/trend-agent');
     } else if (tool.id === 'seo') {
       router.push('/seo-strategist');
+    } else if (tool.id === 'adcreative') {
+      router.push('/adcreative');
     } else {
       // Handle other tools here
     }
@@ -287,12 +313,43 @@ export default function Home() {
               <GradientHeading className="text-4xl font-bold">Gipoly</GradientHeading>
               
               {user && (
-                <UserDropdown 
-                  user={user}
-                  onLogout={logout}
-                  onShowSettings={handleShowSettings}
-                  language={language}
-                />
+                <>
+                  <UserDropdown 
+                    user={user}
+                    onLogout={() => {
+                      logout();
+                      showNotification(
+                        language === 'tr' ? 'Çıkış yapıldı. Tekrar görüşmek üzere!' : 'Logged out successfully. See you again!',
+                        'info'
+                      );
+                    }}
+                    onShowSettings={handleShowSettings}
+                    language={language}
+                  />
+                  
+                  {/* Mağaza Bilgileri */}
+                  {(user.website_url || user.store_platform) && (
+                    <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-lg border border-blue-200">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <div className="text-sm">
+                        {user.website_url && (
+                          <div className="text-blue-800 font-medium">
+                            {language === 'tr' ? 'Mağaza:' : 'Store:'} 
+                            <a href={user.website_url} target="_blank" rel="noopener noreferrer" 
+                               className="ml-1 underline hover:text-blue-600">
+                              {user.website_url.replace(/^https?:\/\//, '')}
+                            </a>
+                          </div>
+                        )}
+                        {user.store_platform && (
+                          <div className="text-blue-600 text-xs">
+                            {language === 'tr' ? 'Platform:' : 'Platform:'} {user.store_platform}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
             
@@ -475,7 +532,22 @@ export default function Home() {
             setShowLoginModal(false);
             setShowRegisterModal(true);
           }}
-          onLogin={login}
+          onLogin={async (email: string, password: string) => {
+            try {
+              await login(email, password);
+              await loadWorkspaces();
+              showNotification(
+                language === 'tr' ? 'Giriş başarılı! Hoş geldiniz.' : 'Login successful! Welcome.',
+                'success'
+              );
+            } catch (error: any) {
+              console.error('Login error:', error);
+              showNotification(
+                language === 'tr' ? 'Giriş başarısız. Lütfen tekrar deneyin.' : 'Login failed. Please try again.',
+                'error'
+              );
+            }
+          }}
           language={language}
         />
       )}
@@ -510,6 +582,14 @@ export default function Home() {
           onUserUpdated={handleUserUpdated}
         />
       )}
+
+      {/* Notification */}
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+      />
     </div>
   );
 } 

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/hooks/useLanguage';
 import api from '@/services/api';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 
 interface TrendRequest {
   category?: string;
@@ -55,6 +56,8 @@ export default function TrendAgentPage() {
   const [currentWorkspace, setCurrentWorkspace] = useState<any>(null);
   const [previousSuggestions, setPreviousSuggestions] = useState<any[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<any>(null);
   const [formData, setFormData] = useState<TrendRequest>({
     category: '',
     target_country: 'TR',
@@ -78,6 +81,7 @@ export default function TrendAgentPage() {
       categoryPlaceholder: "e.g., Electronics, Fashion, Home & Garden",
       targetCountry: "Target Country",
       budgetRange: "Budget Range",
+      selectBudgetRange: "Select Budget Range",
       budgetOptions: {
         low: "Low Budget",
         medium: "Medium Budget", 
@@ -125,6 +129,7 @@ export default function TrendAgentPage() {
       categoryPlaceholder: "örn., Elektronik, Moda, Ev & Bahçe",
       targetCountry: "Hedef Ülke",
       budgetRange: "Bütçe Aralığı",
+      selectBudgetRange: "Bütçe Aralığı Seçin",
       budgetOptions: {
         low: "Düşük Bütçe",
         medium: "Orta Bütçe",
@@ -244,6 +249,17 @@ export default function TrendAgentPage() {
     }
   };
 
+  const handleDeleteSuggestion = async () => {
+    if (!itemToDelete || !currentWorkspace) return;
+    
+    try {
+      await api.delete(`/tools/trend-agent/suggestions/${itemToDelete.id}?workspace_slug=${currentWorkspace.slug}`);
+      loadPreviousSuggestions();
+    } catch (error) {
+      console.error('Failed to delete suggestion:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 flex items-center justify-center">
@@ -336,7 +352,7 @@ export default function TrendAgentPage() {
                   onChange={(e) => handleInputChange('budget_range', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                 >
-                  <option value="">Select Budget Range</option>
+                  <option value="Select Budget Range">{t.selectBudgetRange}</option>
                   <option value="low">{t.budgetOptions.low}</option>
                   <option value="medium">{t.budgetOptions.medium}</option>
                   <option value="high">{t.budgetOptions.high}</option>
@@ -405,7 +421,7 @@ export default function TrendAgentPage() {
 
           {/* Previous Suggestions */}
           {!loading && (
-            <div className="bg-white rounded-2xl p-8 shadow-lg mt-8">
+            <div className="bg-white rounded-2xl p-8 shadow-lg mt-8 mb-8">
               <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                 <svg className="w-6 h-6 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -429,6 +445,7 @@ export default function TrendAgentPage() {
                       responseData = typeof suggestion.response_data === 'string' 
                         ? JSON.parse(suggestion.response_data) 
                         : suggestion.response_data;
+
                     } catch (error) {
                       console.error('Error parsing suggestion data:', error);
                       requestData = { category: 'Unknown' };
@@ -439,7 +456,7 @@ export default function TrendAgentPage() {
                         <div className="flex justify-between items-start mb-3">
                           <div>
                             <h4 className="font-semibold text-gray-900">
-                              {requestData?.category || 'General Analysis'}
+                              {requestData?.category || 'Kategori Belirtilmemiş'}
                             </h4>
                             <p className="text-sm text-gray-500">
                               {new Date(suggestion.created_at).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US')}
@@ -449,22 +466,22 @@ export default function TrendAgentPage() {
                             <button
                               onClick={() => {
                                 setResult(responseData);
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                // Scroll to results section after a short delay to ensure DOM is updated
+                                setTimeout(() => {
+                                  const resultsSection = document.getElementById('results-section');
+                                  if (resultsSection) {
+                                    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                  }
+                                }, 100);
                               }}
                               className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
                             >
                               {t.viewDetails}
                             </button>
                             <button
-                              onClick={async () => {
-                                if (confirm(language === 'tr' ? 'Bu öneriyi silmek istediğinizden emin misiniz?' : 'Are you sure you want to delete this suggestion?')) {
-                                  try {
-                                    await api.delete(`/tools/trend-agent/suggestions/${suggestion.id}?workspace_slug=${currentWorkspace.slug}`);
-                                    loadPreviousSuggestions();
-                                  } catch (error) {
-                                    console.error('Failed to delete suggestion:', error);
-                                  }
-                                }
+                              onClick={() => {
+                                setItemToDelete(suggestion);
+                                setShowDeleteModal(true);
                               }}
                               className="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-all"
                             >
@@ -503,7 +520,7 @@ export default function TrendAgentPage() {
 
           {/* Results */}
           {!loading && result && (
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div id="results-section" className="bg-white rounded-2xl p-8 shadow-lg">
               <div className="space-y-8">
                 {/* Summary */}
                 <div className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl p-6 border border-cyan-100">
@@ -533,6 +550,9 @@ export default function TrendAgentPage() {
                           </span>
                           {product.product_idea}
                         </h4>
+                        
+
+                        
                         <p className="text-gray-700 mb-4 text-lg leading-relaxed">{product.description}</p>
                         
                         <div className="grid grid-cols-2 gap-6 mb-6">
@@ -692,6 +712,24 @@ export default function TrendAgentPage() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setItemToDelete(null);
+        }}
+        onConfirm={handleDeleteSuggestion}
+        title={language === 'tr' ? 'Öneriyi Sil' : 'Delete Suggestion'}
+        message={language === 'tr' 
+          ? 'Bu öneriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'
+          : 'Are you sure you want to delete this suggestion? This action cannot be undone.'
+        }
+        confirmText={language === 'tr' ? 'Sil' : 'Delete'}
+        cancelText={language === 'tr' ? 'İptal' : 'Cancel'}
+        type="danger"
+      />
     </div>
   );
 } 

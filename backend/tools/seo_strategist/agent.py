@@ -64,12 +64,12 @@ class SEOStrategist:
                         score=response_data.get("score", 0)
                     )
                 else:
-                    return self._get_fallback_manual_response(request)
+                    raise Exception("Invalid response structure from AI")
             except Exception as e:
-                return self._get_fallback_manual_response(request)
+                raise e
                 
         except Exception as e:
-            return self._get_fallback_manual_response(request)
+            raise e
     
     async def analyze_url_seo(self, request: URLSEORequest) -> URLAnalysisResult:
         """

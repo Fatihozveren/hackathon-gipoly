@@ -20,6 +20,8 @@ def init_db():
     from models.user import User
     from models.workspace import Workspace, WorkspaceMember
     from tools.trend_agent.models import TrendSuggestion
+    from tools.seo_strategist.models import SEOAnalysis
+    from tools.adcreative.models import AdCreativeAnalysis
 
     
     SQLModel.metadata.create_all(engine)

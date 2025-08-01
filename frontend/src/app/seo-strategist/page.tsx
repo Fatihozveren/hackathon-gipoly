@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/hooks/useLanguage';
 import api from '@/services/api';
 import { SEOCharts } from '@/components/SEOCharts';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 
 interface ManualSEORequest {
   product_name: string;
@@ -115,6 +116,11 @@ export default function SEOStrategistPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SEOAnalysisResult | URLAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [previousAnalyses, setPreviousAnalyses] = useState<any[]>([]);
+  const [loadingAnalyses, setLoadingAnalyses] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<any>(null);
+  const [analysisFilter, setAnalysisFilter] = useState<'all' | 'manual' | 'url'>('all');
 
   // Manual form state
   const [manualForm, setManualForm] = useState<ManualSEORequest>({
@@ -144,13 +150,23 @@ export default function SEOStrategistPage() {
     // Get current workspace from localStorage
     const savedWorkspace = localStorage.getItem('gipoly-current-workspace');
     if (savedWorkspace) {
-      setCurrentWorkspace(JSON.parse(savedWorkspace));
+      const workspace = JSON.parse(savedWorkspace);
+      setCurrentWorkspace(workspace);
     }
   }, [user, router, isLoading]);
+
+  // Load previous analyses when workspace changes
+  useEffect(() => {
+    if (currentWorkspace) {
+      loadPreviousAnalyses();
+    }
+  }, [currentWorkspace]);
 
   const handleTypeSelect = (type: 'manual' | 'url') => {
     setSelectedType(type);
     setShowModal(false);
+    // Auto-filter based on selected type
+    setAnalysisFilter(type);
   };
 
   const handleManualSubmit = async (e: React.FormEvent) => {
@@ -164,6 +180,8 @@ export default function SEOStrategistPage() {
         language: language
       });
       setResult(response.data);
+      // Reload previous analyses after successful generation
+      await loadPreviousAnalyses();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'SEO analizi sırasında bir hata oluştu');
     } finally {
@@ -183,12 +201,47 @@ export default function SEOStrategistPage() {
       });
 
       setResult(response.data);
+      // Reload previous analyses after successful generation
+      await loadPreviousAnalyses();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'URL analizi sırasında bir hata oluştu');
     } finally {
       setLoading(false);
     }
   };
+
+  const loadPreviousAnalyses = async () => {
+    if (!currentWorkspace) return;
+    
+    setLoadingAnalyses(true);
+    try {
+      const response = await api.get(`/tools/seo-strategist/analyses?workspace_slug=${currentWorkspace.slug}`);
+      setPreviousAnalyses(response.data.slice(0, 3)); // Limit to 3 analyses
+    } catch (err) {
+      console.error('Error loading previous analyses:', err);
+    } finally {
+      setLoadingAnalyses(false);
+    }
+  };
+
+  const handleDeleteAnalysis = async () => {
+    if (!itemToDelete) return;
+    
+    try {
+      await api.delete(`/tools/seo-strategist/${itemToDelete.id}/?workspace_slug=${currentWorkspace.slug}`);
+      await loadPreviousAnalyses();
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+    } catch (err) {
+      console.error('Error deleting analysis:', err);
+    }
+  };
+
+  // Filter analyses based on selected type
+  const filteredAnalyses = previousAnalyses.filter(analysis => {
+    if (analysisFilter === 'all') return true;
+    return analysis.analysis_type === analysisFilter;
+  });
 
   const resetForm = () => {
     setSelectedType(null);
@@ -323,6 +376,8 @@ export default function SEOStrategistPage() {
             {t.subtitle}
           </p>
         </div>
+
+
 
         {/* Type Selection Modal */}
         {showModal && (
@@ -467,7 +522,7 @@ export default function SEOStrategistPage() {
 
         {/* Results Display */}
         {result && (
-          <div className="max-w-4xl mx-auto">
+          <div id="results-section" className="max-w-4xl mx-auto">
             <div className="mb-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">Analiz Sonuçları</h2>
               <button
@@ -479,7 +534,7 @@ export default function SEOStrategistPage() {
             </div>
 
             {/* Manual SEO Results */}
-            {selectedType === 'manual' && 'title' in result && (
+            {('title' in result) && (
               <div className="space-y-6">
                 {/* SEO Score */}
                 <div className="bg-white rounded-xl p-6 shadow-lg">
@@ -543,7 +598,7 @@ export default function SEOStrategistPage() {
             )}
 
             {/* URL Analysis Results */}
-            {selectedType === 'url' && 'product_analysis' in result && (
+            {('product_analysis' in result) && (
               <div className="space-y-6">
                 {/* Overall SEO Score */}
                 {(result.seo_score && result.seo_score > 0) && (
@@ -941,9 +996,141 @@ export default function SEOStrategistPage() {
                 )}
               </div>
             )}
+
+
+          </div>
+        )}
+
+                {/* Previous Analyses - Always visible when available */}
+        {previousAnalyses.length > 0 && (
+          <div className="max-w-4xl mx-auto mt-8">
+            <div className="bg-white rounded-2xl p-8 shadow-lg">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900 flex items-center">
+                  <svg className="w-6 h-6 text-cyan-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {language === 'tr' ? 'Önceki Analizler' : 'Previous Analyses'}
+                </h3>
+                
+                {/* Filter Buttons */}
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setAnalysisFilter('all')}
+                    className={`px-3 py-1 text-sm rounded-lg transition-all ${
+                      analysisFilter === 'all'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {language === 'tr' ? 'Tümü' : 'All'}
+                  </button>
+                  <button
+                    onClick={() => setAnalysisFilter('manual')}
+                    className={`px-3 py-1 text-sm rounded-lg transition-all ${
+                      analysisFilter === 'manual'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {language === 'tr' ? 'Manuel' : 'Manual'}
+                  </button>
+                  <button
+                    onClick={() => setAnalysisFilter('url')}
+                    className={`px-3 py-1 text-sm rounded-lg transition-all ${
+                      analysisFilter === 'url'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {language === 'tr' ? 'URL' : 'URL'}
+                  </button>
+                </div>
+              </div>
+              
+              {loadingAnalyses ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredAnalyses.map((analysis, index) => (
+                    <div key={analysis.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">
+                            {analysis.analysis_type === 'manual' 
+                              ? (analysis.request_data?.product_name || 'Manuel Analiz')
+                              : (analysis.response_data?.product_analysis?.suggested_product_name || analysis.response_data?.product_analysis?.product_name || 'URL Analizi')
+                            }
+                          </h4>
+                          <p className="text-sm text-gray-500">
+                            {new Date(analysis.created_at).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US')}
+                          </p>
+                          <span className="inline-block mt-1 text-xs bg-cyan-100 text-cyan-800 px-2 py-1 rounded">
+                            {analysis.response_data?.seo_score || analysis.response_data?.score || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setResult(analysis.response_data);
+                              setSelectedType(analysis.analysis_type as 'manual' | 'url');
+                              setShowModal(false);
+                              setTimeout(() => {
+                                const resultsSection = document.getElementById('results-section');
+                                if (resultsSection) {
+                                  resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                              }, 100);
+                            }}
+                            className="px-3 py-1 bg-gradient-to-r from-cyan-500 to-fuchsia-500 text-white text-sm rounded-lg hover:from-cyan-600 hover:to-fuchsia-600 transition-all"
+                          >
+                            {language === 'tr' ? 'Detayları Görüntüle' : 'View Details'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setItemToDelete(analysis);
+                              setShowDeleteModal(true);
+                            }}
+                            className="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-all"
+                          >
+                            {language === 'tr' ? 'Sil' : 'Delete'}
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm line-clamp-2">
+                        {analysis.analysis_type === 'manual' 
+                          ? (analysis.request_data?.product_description || 'Manuel SEO analizi')
+                          : (analysis.request_data?.url || 'URL analizi')
+                        }
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setItemToDelete(null);
+        }}
+        onConfirm={handleDeleteAnalysis}
+        title={language === 'tr' ? 'Analizi Sil' : 'Delete Analysis'}
+        message={language === 'tr' 
+          ? 'Bu analizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'
+          : 'Are you sure you want to delete this analysis? This action cannot be undone.'
+        }
+        confirmText={language === 'tr' ? 'Sil' : 'Delete'}
+        cancelText={language === 'tr' ? 'İptal' : 'Cancel'}
+        type="danger"
+      />
     </div>
   );
 } 

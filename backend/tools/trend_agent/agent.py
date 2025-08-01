@@ -92,11 +92,11 @@ class TrendAgent:
                         created_at=datetime.utcnow()
                     )
                 else:
-                    return self._get_fallback_response(request)
+                    raise Exception("Invalid response structure from AI")
             except Exception as e:
-                return self._get_fallback_response(request)
+                raise e
         except Exception as e:
-            return self._get_fallback_response(request)
+            raise e
     
     def _parse_ai_response(self, response: str) -> Dict[str, Any]:
         try:
@@ -121,35 +121,4 @@ class TrendAgent:
             return False
         return True
     
-    def _get_fallback_response(self, request: TrendRequest) -> TrendResponse:
-        fallback_products = [
-            ProductSuggestion(
-                product_idea="Akıllı Ev Aleti",
-                description="Türkiye pazarında popüler olan akıllı ev aletleri",
-                recommended_price_range=format_currency_range("200-500", request.target_country),
-                target_audience="Teknoloji meraklıları",
-                competition_score=6,
-                trend_score=8,
-                profit_margin_estimate="30-40%",
-                market_opportunity="Akıllı ev pazarı hızla büyüyor",
-                risks_and_challenges="Rekabet yoğun, kalite önemli",
-                marketing_suggestions="Sosyal medya, influencer marketing",
-                ecommerce_platforms=["Trendyol", "Hepsiburada", "Amazon"],
-                estimated_demand="Yüksek"
-            )
-        ]
-        trend_analysis = TrendAnalysis(
-            category_analysis="Elektronik pazarı Türkiye'de sürekli büyüyor",
-            market_trends="Akıllı cihazlar ve kablosuz teknolojiler popüler",
-            seasonal_factors="Yılbaşı ve öğrenci sezonu satışları artırır",
-            competitive_landscape="Çok sayıda marka var, farklılaşma önemli",
-            ai_recommendations="Kaliteli ürün + iyi pazarlama stratejisi"
-        )
-        return TrendResponse(
-            products=fallback_products,
-            trends_data=None,
-            trend_analysis=trend_analysis,
-            summary="Türkiye elektronik pazarında fırsatlar mevcut",
-            next_steps=["Pazar araştırması yapın", "Rekabet analizi yapın", "Pazarlama stratejisi geliştirin"],
-            created_at=datetime.utcnow()
-        ) 
+ 
