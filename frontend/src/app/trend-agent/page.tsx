@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/hooks/useLanguage';
 import api from '@/services/api';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { TrendChart } from '@/components/TrendChart';
 
 interface TrendRequest {
   category?: string;
@@ -58,6 +59,8 @@ export default function TrendAgentPage() {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<any>(null);
+  const [trendData, setTrendData] = useState<any[]>([]);
+  const [loadingTrends, setLoadingTrends] = useState(false);
   const [formData, setFormData] = useState<TrendRequest>({
     category: '',
     target_country: 'TR',
@@ -207,6 +210,11 @@ export default function TrendAgentPage() {
     }
   }, [currentWorkspace]);
 
+  // Load trend data on component mount
+  useEffect(() => {
+    loadTrendData();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -246,6 +254,18 @@ export default function TrendAgentPage() {
       console.error('Failed to load previous suggestions:', error);
     } finally {
       setLoadingSuggestions(false);
+    }
+  };
+
+  const loadTrendData = async () => {
+    try {
+      setLoadingTrends(true);
+      const response = await api.get('/tools/trend-agent/categories');
+      setTrendData(response.data);
+    } catch (error) {
+      console.error('Failed to load trend data:', error);
+    } finally {
+      setLoadingTrends(false);
     }
   };
 
@@ -310,6 +330,11 @@ export default function TrendAgentPage() {
         </div>
 
         <div className="max-w-6xl mx-auto">
+          {/* Trend Chart */}
+          <div className="mb-12">
+            <TrendChart data={trendData} />
+          </div>
+
           {/* Form */}
           <div className="bg-white rounded-2xl p-8 shadow-lg mb-12">
             <form onSubmit={handleSubmit} className="space-y-6">

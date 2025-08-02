@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlmodel import Session, select
 from typing import List
 from datetime import datetime
+import json
 from database import get_session
 from dependencies import get_current_user, get_current_workspace
 from models.user import User
@@ -14,7 +15,7 @@ from utils.localization import get_localized_message, get_language_from_request
 from .schemas import (
     TrendRequest, TrendResponse, TrendSuggestionRead
 )
-from .models import TrendSuggestion
+from .models import TrendSuggestion, TrendCategory
 from .agent import TrendAgent
 
 router = APIRouter(prefix="/tools/trend-agent", tags=["trend-agent"])
@@ -221,6 +222,29 @@ async def delete_suggestion(
     db.commit()
     
     return {"message": get_localized_message("suggestion_deleted")}
+
+
+@router.get("/categories")
+async def get_trend_categories(
+    session: Session = Depends(get_session)
+):
+    """Get trend categories with their trend data."""
+    try:
+        categories = session.exec(select(TrendCategory)).all()
+        
+        result = []
+        for category in categories:
+            trend_data = json.loads(category.trend_data)
+            result.append({
+                "id": category.id,
+                "name": category.category_name,
+                "trend_data": trend_data,
+                "last_updated": category.last_updated
+            })
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
