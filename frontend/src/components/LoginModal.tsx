@@ -4,16 +4,16 @@ import { X } from 'lucide-react';
 interface LoginModalProps {
   onClose: () => void;
   onSwitchToRegister: () => void;
-  onLogin: (email: string, password: string) => Promise<void>;
+  onLogin: (email: string, password: string) => void;
   language: 'en' | 'tr';
+  isLoading?: boolean;
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({
-  onClose, onSwitchToRegister, onLogin, language
+  onClose, onSwitchToRegister, onLogin, language, isLoading = false
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const translations = {
@@ -39,27 +39,34 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   const t = translations[language];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    try {
-      await onLogin(email, password);
-      onClose();
-    } catch (error) {
-    } finally {
-      setIsLoading(false);
+    e.stopPropagation();
+    
+    if (isLoading) return;
+    
+    if (!email.trim()) {
+      setError(language === 'tr' ? 'E-posta adresi gerekli' : 'Email is required');
+      return;
     }
+    
+    if (!password.trim()) {
+      setError(language === 'tr' ? 'Şifre gerekli' : 'Password is required');
+      return;
+    }
+    
+    setError('');
+    onLogin(email, password);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 max-w-md w-full relative shadow-2xl border border-white/60">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 max-w-md w-full relative shadow-2xl border border-white/60" onClick={(e) => e.stopPropagation()}>
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-full"
+          disabled={isLoading}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <X size={20} />
         </button>
@@ -73,7 +80,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div className="space-y-2">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               {t.email}
@@ -86,7 +93,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-gray-900 placeholder-gray-500 transition-all duration-200 backdrop-blur-sm"
                 placeholder="your@email.com"
-                required
+                autoComplete="email"
               />
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/0 via-sky-500/0 to-fuchsia-500/0 opacity-0 focus-within:opacity-10 transition-opacity duration-200 pointer-events-none" />
             </div>
@@ -104,13 +111,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-gray-900 placeholder-gray-500 transition-all duration-200 backdrop-blur-sm"
                 placeholder="••••••••"
-                required
+                autoComplete="current-password"
               />
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/0 via-sky-500/0 to-fuchsia-500/0 opacity-0 focus-within:opacity-10 transition-opacity duration-200 pointer-events-none" />
             </div>
           </div>
 
-          {/* Error handling moved to parent component via notification */}
+          {/* Error message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+              {error}
+            </div>
+          )}
 
           <button
             type="submit"

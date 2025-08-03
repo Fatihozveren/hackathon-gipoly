@@ -228,21 +228,37 @@ async def delete_suggestion(
 async def get_trend_categories(
     session: Session = Depends(get_session)
 ):
-    """Get trend categories with their trend data."""
+    """Get top 10 trend categories with their trend data."""
     try:
         categories = session.exec(select(TrendCategory)).all()
         
         result = []
         for category in categories:
             trend_data = json.loads(category.trend_data)
+            
+            # Calculate average trend score for ranking
+            if trend_data:
+                avg_score = sum(trend_data.values()) / len(trend_data)
+            else:
+                avg_score = 0
+            
             result.append({
                 "id": category.id,
                 "name": category.category_name,
                 "trend_data": trend_data,
-                "last_updated": category.last_updated
+                "last_updated": category.last_updated,
+                "avg_score": avg_score
             })
         
-        return result
+        # Sort by average score and return top 10
+        result.sort(key=lambda x: x["avg_score"], reverse=True)
+        top_10 = result[:10]
+        
+        # Remove avg_score from response
+        for item in top_10:
+            del item["avg_score"]
+        
+        return top_10
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

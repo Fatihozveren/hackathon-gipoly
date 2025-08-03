@@ -210,10 +210,12 @@ export default function TrendAgentPage() {
     }
   }, [currentWorkspace]);
 
-  // Load trend data on component mount
+  // Load trend data on component mount and when workspace changes
   useEffect(() => {
-    loadTrendData();
-  }, []);
+    if (currentWorkspace) {
+      loadTrendData();
+    }
+  }, [currentWorkspace]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -337,6 +339,9 @@ export default function TrendAgentPage() {
 
           {/* Form */}
           <div className="bg-white rounded-2xl p-8 shadow-lg mb-12">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Yeni Trend Analizi</h3>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

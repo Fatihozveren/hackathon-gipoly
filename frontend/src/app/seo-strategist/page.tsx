@@ -228,7 +228,7 @@ export default function SEOStrategistPage() {
     if (!itemToDelete) return;
     
     try {
-      await api.delete(`/tools/seo-strategist/${itemToDelete.id}/?workspace_slug=${currentWorkspace.slug}`);
+      await api.delete(`/tools/seo-strategist/analyses/${itemToDelete.id}?workspace_slug=${currentWorkspace.slug}`);
       await loadPreviousAnalyses();
       setShowDeleteModal(false);
       setItemToDelete(null);

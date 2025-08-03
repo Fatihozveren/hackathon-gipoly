@@ -35,10 +35,20 @@ const COLORS = [
 ];
 
 export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
-  // State for active categories
+  // State for active categories - start with all categories active
   const [activeCategories, setActiveCategories] = React.useState<Set<string>>(
     new Set(data.map(cat => cat.name))
   );
+  
+  // State for hover effect
+  const [hoveredCategory, setHoveredCategory] = React.useState<string | null>(null);
+
+  // Update active categories when data changes
+  React.useEffect(() => {
+    if (data && data.length > 0) {
+      setActiveCategories(new Set(data.map(cat => cat.name)));
+    }
+  }, [data]);
 
   // Toggle category visibility
   const toggleCategory = (categoryName: string) => {
@@ -108,6 +118,8 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
           <button
             key={category.name}
             onClick={() => toggleCategory(category.name)}
+            onMouseEnter={() => setHoveredCategory(category.name)}
+            onMouseLeave={() => setHoveredCategory(null)}
             className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
               activeCategories.has(category.name)
                 ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
@@ -137,11 +149,18 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
               domain={[0, 100]}
               tick={{ fontSize: 12 }}
             />
-            <Tooltip 
-              labelFormatter={(label) => new Date(label).toLocaleDateString('tr-TR')}
-              formatter={(value: any, name: string) => [value, name]}
-            />
-            <Legend />
+                                    <Tooltip 
+                          labelFormatter={(label) => new Date(label).toLocaleDateString('tr-TR')}
+                          formatter={(value: any, name: string) => [value, name]}
+                          contentStyle={{
+                            backgroundColor: 'white',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            padding: '4px',
+                            fontSize: '12px'
+                          }}
+                        />
+                                    <Legend />
             {data.map((category, index) => (
               activeCategories.has(category.name) && (
                 <Line
@@ -149,9 +168,31 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
                   type="monotone"
                   dataKey={category.name}
                   stroke={COLORS[index % COLORS.length]}
-                  strokeWidth={activeCategories.size === 1 ? 4 : 2}
+                  strokeWidth={
+                    hoveredCategory === category.name 
+                      ? 4 
+                      : hoveredCategory && hoveredCategory !== category.name
+                        ? 1
+                        : activeCategories.size === 1 
+                          ? 4 
+                          : 2
+                  }
                   dot={false}
-                  activeDot={{ r: 6, strokeWidth: 3 }}
+                  activeDot={{ 
+                    r: 6, 
+                    strokeWidth: 2, 
+                    fill: COLORS[index % COLORS.length],
+                    stroke: COLORS[index % COLORS.length]
+                  }}
+                  strokeOpacity={
+                    hoveredCategory === category.name 
+                      ? 1 
+                      : hoveredCategory && hoveredCategory !== category.name
+                        ? 0.2
+                        : 0.8
+                  }
+                  onMouseEnter={() => setHoveredCategory(category.name)}
+                  onMouseLeave={() => setHoveredCategory(null)}
                 />
               )
             ))}

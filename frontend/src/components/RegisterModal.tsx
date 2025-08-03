@@ -6,15 +6,15 @@ interface RegisterModalProps {
   onSwitchToLogin: () => void;
   onRegister: (email: string, password: string, fullName: string) => Promise<void>;
   language: 'en' | 'tr';
+  isLoading?: boolean;
 }
 
 export const RegisterModal: React.FC<RegisterModalProps> = ({
-  onClose, onSwitchToLogin, onRegister, language
+  onClose, onSwitchToLogin, onRegister, language, isLoading = false
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const translations = {
@@ -44,16 +44,14 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (isLoading) return;
+    
     setError('');
-
     try {
       await onRegister(email, password, fullName);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
-    } finally {
-      setIsLoading(false);
     }
   };
 

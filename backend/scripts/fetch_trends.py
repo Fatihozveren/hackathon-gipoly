@@ -5,10 +5,10 @@ Script to fetch Google Trends data for popular categories and store in database.
 
 import os
 import json
-import asyncio
-from datetime import datetime, timedelta
-from pytrends.request import TrendReq
-from sqlmodel import Session, create_engine
+import time
+import random
+from datetime import datetime
+from sqlmodel import Session, create_engine, select
 from dotenv import load_dotenv
 
 # Import models
@@ -18,82 +18,111 @@ from tools.trend_agent.models import TrendCategory
 
 load_dotenv()
 
-# Database setup
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/gipoly")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required")
 engine = create_engine(DATABASE_URL)
 
-# Popular categories for Turkish market (using Turkish terms)
 CATEGORIES = [
-    "Elektronik",
-    "Moda", 
-    "Ev & Bahçe",
-    "Spor & Outdoor",
-    "Kozmetik",
-    "Kitap & Eğitim",
-    "Oyuncak & Hobi",
-    "Gıda & İçecek",
-    "Sağlık & Fitness",
-    "Otomotiv"
+    "teknoloji",
+    "moda", 
+    "ev",
+    "sağlık",
+    "spor",
+    "otomobil",
+    "kozmetik",
+    "kitap",
+    "oyuncak",
+    "yemek",
+    "sağlık",
+    "otomobil",
 ]
 
-def fetch_trend_data(category: str) -> dict:
-    """Fetch Google Trends data for a category."""
+def get_trends_data(keyword):
+    """Sadece gerçek Google Trends verisi çek"""
     try:
-        # Initialize pytrends with different settings
-        pytrends = TrendReq(hl='tr-TR', tz=180)
+        from pytrends.request import TrendReq
+        print(f"🔍 {keyword} için veri çekiliyor...")
         
-        # Build payload for last 2 months
-        timeframe = 'today 2-m'
-        pytrends.build_payload([category], timeframe=timeframe, geo='TR')
+        pytrends = TrendReq(hl='tr-TR', tz=180, retries=3)
+        pytrends.build_payload([keyword], timeframe='today 3-m', geo='TR')
         
-        # Get interest over time
-        interest_over_time = pytrends.interest_over_time()
+        data = pytrends.interest_over_time()
         
-        if interest_over_time.empty:
-            return {}
+        if data.empty:
+            print(f"{keyword} için veri bulunamadı")
+            return None
+            
+        if 'isPartial' in data.columns:
+            data.drop('isPartial', axis=1, inplace=True)
         
-        # Convert to simple date -> score format
-        trend_data = {}
-        for date, row in interest_over_time.iterrows():
-            trend_data[date.strftime('%Y-%m-%d')] = int(row[category])
+        result = {}
+        for date, value in data[keyword].items():
+            result[date.strftime('%Y-%m-%d')] = int(value)
         
-        return trend_data
+        print(f"{keyword}: {len(result)} gerçek veri alındı")
+        return result
         
     except Exception as e:
-        return {}
+        print(f"{keyword} hatası: {e}")
+        return None
 
-def save_trend_data():
-    """Save trend data to database."""
-    with Session(engine) as session:
-        for category in CATEGORIES:
-            # Fetch trend data
-            trend_data = fetch_trend_data(category)
+def save_to_db(category_name, trend_data):
+    try:
+        with Session(engine) as session:
+            # Import models to avoid relationship issues
+            from models.user import User
+            from models.workspace import Workspace, WorkspaceMember
             
-            if not trend_data:
-                continue
-            
-            # Check if category exists
-            existing = session.query(TrendCategory).filter(
-                TrendCategory.category_name == category
+            existing = session.exec(
+                select(TrendCategory).where(TrendCategory.category_name == category_name)
             ).first()
             
             if existing:
-                # Update existing
                 existing.trend_data = json.dumps(trend_data, ensure_ascii=False)
                 existing.last_updated = datetime.utcnow()
+                print(f"{category_name} güncellendi")
             else:
-                # Create new
-                new_category = TrendCategory(
-                    category_name=category,
+                new_record = TrendCategory(
+                    category_name=category_name,
                     trend_data=json.dumps(trend_data, ensure_ascii=False)
                 )
-                session.add(new_category)
+                session.add(new_record)
+                print(f"{category_name} oluşturuldu")
+            
+            session.commit()
+            return True
+            
+    except Exception as e:
+        print(f"DB hatası {category_name}: {e}")
+        return False
 
-            # Longer delay to avoid rate limiting
-            import time
-            time.sleep(30)
+def main():
+    success_count = 0
+    
+    for i, category in enumerate(CATEGORIES):
+        if i > 0:
+            wait_time = random.randint(60, 90)
+            print(f"⏳ {wait_time} saniye bekleniyor...")
+            time.sleep(wait_time)
         
-        session.commit()
+        trend_data = get_trends_data(category)
+        
+        if trend_data:
+            if save_to_db(category, trend_data):
+                print(f"{category} başarıyla kaydedildi\n")
+                success_count += 1
+            else:
+                print(f"{category} kaydedilemedi\n")
+        else:
+            print(f"{category} - veri alınamadı, atlandı\n")
+    
+    print(f"🎉 İşlem tamamlandı!")
+    print(f"{success_count}/{len(CATEGORIES)} kategori başarıyla kaydedildi")
+    
+    if success_count == 0:
+        print("\n no data found")
+
 
 if __name__ == "__main__":
-    save_trend_data() 
+    main()
