@@ -7,7 +7,7 @@ import uuid
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 import google.generativeai as genai
-from langchain_google_genai import ChatGoogleGenerativeAI
+
 import vertexai
 from vertexai.preview.vision_models import ImageGenerationModel
 from google.cloud import storage
@@ -30,13 +30,7 @@ class AdCreativeAgent:
         genai.configure(api_key=self.gemini_api_key)
         self.model = genai.GenerativeModel('gemini-2.0-flash')
         
-        # Initialize LangChain LLM
-        self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=self.gemini_api_key,
-            temperature=0.7,
-            max_tokens=2000
-        )
+
         
         # Initialize Vertex AI
         self._setup_vertex_ai()
@@ -139,8 +133,8 @@ class AdCreativeAgent:
                 audience_interests=audience_interests
             )
             
-            response = await self.llm.ainvoke(prompt)
-            response_data = parse_ai_response(response.content)
+            response = await self.model.generate_content_async(prompt)
+            response_data = parse_ai_response(response.text)
             
             if validate_ad_creative_response(response_data):
                 return response_data

@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 import google.generativeai as genai
-from langchain_google_genai import ChatGoogleGenerativeAI
+
 from .prompts import MANUAL_SEO_PROMPT_EN, MANUAL_SEO_PROMPT_TR, URL_ANALYSIS_PROMPT_EN, URL_ANALYSIS_PROMPT_TR
 from .schemas import ManualSEORequest, URLSEORequest, SEOAnalysisResult, URLAnalysisResult
 from .utils import extract_content_from_url, clean_json_codeblock
@@ -27,13 +27,7 @@ class SEOStrategist:
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel('gemini-2.0-flash')
         
-        # Initialize LangChain LLM
-        self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=self.api_key,
-            temperature=0.7,
-            max_tokens=2000
-        )
+
     
     async def analyze_manual_seo(self, request: ManualSEORequest) -> SEOAnalysisResult:
         """
@@ -50,10 +44,10 @@ class SEOStrategist:
                 target_keywords=request.target_keywords or "Not specified"
             )
             
-            response = await self.llm.ainvoke(prompt)
+            response = await self.model.generate_content_async(prompt)
             
             try:
-                response_data = self._parse_ai_response(response.content)
+                response_data = self._parse_ai_response(response.text)
                 if self._validate_manual_response(response_data):
                     return SEOAnalysisResult(
                         title=response_data.get("title", ""),

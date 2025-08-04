@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
 import google.generativeai as genai
-from langchain_google_genai import ChatGoogleGenerativeAI
+
 from .prompts import TREND_ANALYSIS_PROMPT_EN, TREND_ANALYSIS_PROMPT_TR
 from .utils import format_currency_range
 from .schemas import TrendRequest, TrendResponse, ProductSuggestion, TrendAnalysis
@@ -26,13 +26,7 @@ class TrendAgent:
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel('gemini-2.0-flash')
         
-        # Initialize LangChain LLM
-        self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=self.api_key,
-            temperature=0.7,
-            max_tokens=2000
-        )
+
     
     async def generate_suggestion(self, request: TrendRequest) -> TrendResponse:
         """
@@ -55,9 +49,9 @@ class TrendAgent:
                 product_count=request.product_count or 2,
                 trends_data=""
             )
-            response = await self.llm.ainvoke(prompt)
+            response = await self.model.generate_content_async(prompt)
             try:
-                response_data = self._parse_ai_response(response.content)
+                response_data = self._parse_ai_response(response.text)
                 if self._validate_response(response_data):
                     products = []
                     for product_data in response_data.get("products", []):
