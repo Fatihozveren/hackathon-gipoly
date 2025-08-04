@@ -44,9 +44,24 @@ class AdCreativeAgent:
     def _setup_vertex_ai(self):
         """Setup Vertex AI client."""
         try:
-            # Set Google Cloud credentials
+            # Set Google Cloud credentials from environment variable
+            credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
             credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-            if credentials_path:
+            
+            if credentials_json:
+                # Use JSON content from environment variable
+                import tempfile
+                import json
+                
+                # Create temporary file with credentials
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                    json.dump(json.loads(credentials_json), f)
+                    temp_credentials_path = f.name
+                
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_credentials_path
+                
+            elif credentials_path:
+                # Use file path (for local development)
                 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
             
             # Initialize Vertex AI
@@ -54,8 +69,12 @@ class AdCreativeAgent:
             location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
             
             if project_id:
-                vertexai.init(project=project_id, location=location)
-                self.vertex_ai_available = True
+                try:
+                    vertexai.init(project=project_id, location=location)
+                    self.vertex_ai_available = True
+                except Exception as init_error:
+                    print(f"Vertex AI initialization failed: {init_error}")
+                    self.vertex_ai_available = False
             else:
                 self.vertex_ai_available = False
                 
@@ -93,7 +112,7 @@ class AdCreativeAgent:
             )
             
         except Exception as e:
-            raise e
+            raise Exception(f"Ad campaign generation failed: {str(e)}")
     
     async def _generate_text_content(self, request: AdCreativeRequest) -> Dict[str, Any]:
         """Generate text content using Gemini."""
@@ -170,7 +189,7 @@ class AdCreativeAgent:
     async def _generate_ad_image(self, request: AdCreativeRequest) -> str:
         """Generate advertising image using Vertex AI."""
         if not self.vertex_ai_available:
-            return "IMAGE_GENERATION_FAILED"
+            raise Exception("Vertex AI is not available. Please check Google Cloud credentials.")
         
         try:
             # Always use English prompt for better AI understanding
@@ -200,10 +219,10 @@ class AdCreativeAgent:
                 url = self._save_image_to_storage(image)
                 return url
             else:
-                return "IMAGE_GENERATION_FAILED"
+                raise Exception("Image generation failed. No image was created.")
                 
         except Exception as e:
-            return "IMAGE_GENERATION_FAILED"
+            raise Exception(f"Image generation failed: {str(e)}")
     
     async def _generate_image_with_vertex_ai(self, prompt: str) -> Optional[bytes]:
         """Generate image using Vertex AI Imagen model."""
@@ -230,10 +249,10 @@ class AdCreativeAgent:
                 image_bytes = image._image_bytes
                 return image_bytes
             else:
-                return None
+                raise Exception("Vertex AI returned no images")
             
         except Exception as e:
-            return None
+            raise Exception(f"Vertex AI image generation failed: {str(e)}")
     
     def _save_image_to_storage(self, image_data: bytes) -> str:
         """Save image to Google Cloud Storage and return public URL."""
@@ -264,5 +283,4 @@ class AdCreativeAgent:
             return blob.public_url
             
         except Exception as e:
-            # Return a working placeholder as fallback
-            return "https://picsum.photos/1200/1200?random=1" 
+            raise Exception(f"Failed to save image to Google Cloud Storage: {str(e)}") 

@@ -1,6 +1,10 @@
 from sqlmodel import SQLModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from models.workspace import Workspace
+    from models.user import User
 
 
 class SEOAnalysis(SQLModel, table=True):

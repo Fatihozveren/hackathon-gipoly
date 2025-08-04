@@ -400,8 +400,8 @@ export default function AdCreativePage() {
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-fuchsia-50">
       {/* Navbar */}
       <nav className="bg-white/90 backdrop-blur-xl border-b border-white/60 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push('/')}
@@ -410,11 +410,11 @@ export default function AdCreativePage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                <span className="font-medium">{t.back}</span>
+                <span className="font-medium text-sm sm:text-base">{t.back}</span>
               </button>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">
+              <div className="text-xs sm:text-sm text-gray-500">
                 Workspace: <span className="font-medium text-cyan-600">{currentWorkspace?.name}</span>
               </div>
             </div>
@@ -422,13 +422,13 @@ export default function AdCreativePage() {
         </div>
       </nav>
 
-      <div className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Header */}
-        <div className="text-center mb-16 pt-8">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-600 to-fuchsia-600 bg-clip-text text-transparent mb-8 leading-tight">
+        <div className="text-center mb-8 sm:mb-16 pt-4 sm:pt-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-600 to-fuchsia-600 bg-clip-text text-transparent mb-4 sm:mb-8 leading-tight px-4">
             {t.title}
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
             {t.subtitle}
           </p>
         </div>
@@ -436,7 +436,7 @@ export default function AdCreativePage() {
         {/* Form */}
         {!result && (
           <div className="max-w-2xl mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t.productName} *
@@ -446,7 +446,7 @@ export default function AdCreativePage() {
                   required
                   value={form.product_name}
                   onChange={(e) => setForm({...form, product_name: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base"
                   placeholder={language === 'tr' ? 'Ürün adını girin' : 'Enter product name'}
                 />
               </div>
@@ -460,12 +460,12 @@ export default function AdCreativePage() {
                   rows={4}
                   value={form.product_description}
                   onChange={(e) => setForm({...form, product_description: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base"
                   placeholder={language === 'tr' ? 'Ürününüzü açıklayın' : 'Describe your product'}
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.platform} *
@@ -473,7 +473,7 @@ export default function AdCreativePage() {
                   <select
                     value={form.platform}
                     onChange={(e) => setForm({...form, platform: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base"
                   >
                     {Object.entries(t.platforms).map(([key, value]) => (
                       <option key={key} value={key}>{value}</option>
@@ -488,7 +488,7 @@ export default function AdCreativePage() {
                   <select
                     value={form.goal}
                     onChange={(e) => setForm({...form, goal: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base"
                   >
                     {Object.entries(t.goals).map(([key, value]) => (
                       <option key={key} value={key}>{value}</option>

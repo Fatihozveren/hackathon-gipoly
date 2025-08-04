@@ -296,28 +296,22 @@ export default function Home() {
     <div className="min-h-screen">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div 
-          className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-cyan-300/20 to-sky-400/20 rounded-full blur-3xl animate-pulse"
+          className="absolute top-10 sm:top-20 left-5 sm:left-10 w-48 h-48 sm:w-72 sm:h-72 bg-gradient-to-r from-cyan-300/20 to-sky-400/20 rounded-full blur-2xl sm:blur-3xl animate-pulse"
           style={{ transform: `translateY(${scrollY * 0.1}px)` }}
         />
         <div 
-          className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-fuchsia-300/20 to-cyan-300/20 rounded-full blur-3xl animate-pulse"
+          className="absolute bottom-10 sm:bottom-20 right-5 sm:right-10 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-r from-fuchsia-300/20 to-cyan-300/20 rounded-full blur-2xl sm:blur-3xl animate-pulse"
           style={{ transform: `translateY(${-scrollY * 0.1}px)` }}
         />
       </div>
 
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-4">
         <div className="max-w-7xl mx-auto">
           <div 
-            className="bg-white/90 backdrop-blur-xl border border-white/60 rounded-2xl px-8 py-6 flex justify-between items-center shadow-lg"
-            style={{ 
-              width: '1330px', 
-              height: '90px', 
-              margin: '0 auto',
-              maxWidth: '1330px'
-            }}
+            className="bg-white/90 backdrop-blur-xl border border-white/60 rounded-2xl px-4 sm:px-8 py-4 sm:py-6 flex flex-col sm:flex-row justify-between items-center shadow-lg gap-4"
           >
-            <div className="flex items-center space-x-8">
-              <GradientHeading className="text-4xl font-bold">Gipoly</GradientHeading>
+            <div className="flex items-center space-x-4 sm:space-x-8 w-full sm:w-auto justify-between sm:justify-start">
+              <GradientHeading className="text-2xl sm:text-4xl font-bold">Gipoly</GradientHeading>
               
               {user && (
                 <>
@@ -334,9 +328,9 @@ export default function Home() {
                     language={language}
                   />
                   
-                  {/* Mağaza Bilgileri */}
+                  {/* Mağaza Bilgileri - Mobilde gizle */}
                   {(user.website_url || user.store_platform) && (
-                    <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-lg border border-blue-200">
+                    <div className="hidden lg:flex items-center space-x-3 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-lg border border-blue-200">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       <div className="text-sm">
                         {user.website_url && (
@@ -360,21 +354,24 @@ export default function Home() {
               )}
             </div>
             
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-3 sm:space-x-6 w-full sm:w-auto justify-end">
               {user ? (
                 <>
                   {/* Workspace Selector */}
                   <button
                     onClick={() => setShowWorkspaceModal(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-cyan-50 border border-cyan-200 rounded-lg hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-300"
+                    className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-cyan-50 border border-cyan-200 rounded-lg hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-300 text-xs sm:text-sm"
                   >
-                    <svg className="w-4 h-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    <span className="text-sm font-medium text-cyan-700">
+                    <span className="font-medium text-cyan-700 hidden sm:block">
                       {currentWorkspace ? currentWorkspace.name : t.auth.selectWorkspace}
                     </span>
-                    <svg className="w-3 h-3 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span className="font-medium text-cyan-700 sm:hidden">
+                      {currentWorkspace ? currentWorkspace.name.substring(0, 10) + '...' : 'Workspace'}
+                    </span>
+                    <svg className="w-2 h-2 sm:w-3 sm:h-3 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
@@ -384,7 +381,7 @@ export default function Home() {
               ) : (
                 <button
                   onClick={() => setShowLoginModal(true)}
-                  className="group relative px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-cyan-500 to-sky-500 backdrop-blur-sm border border-cyan-400/20 rounded-lg hover:from-cyan-600 hover:to-sky-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 overflow-hidden"
+                  className="group relative px-4 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-medium text-white bg-gradient-to-r from-cyan-500 to-sky-500 backdrop-blur-sm border border-cyan-400/20 rounded-lg hover:from-cyan-600 hover:to-sky-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/0 via-sky-500/0 to-fuchsia-500/0 group-hover:from-cyan-400/20 group-hover:via-sky-500/20 group-hover:to-fuchsia-500/20 transition-all duration-300" />
                   <span className="relative z-10">{t.auth.loginSignup}</span>
@@ -397,25 +394,20 @@ export default function Home() {
         </div>
       </nav>
 
-      <section className="pt-32 pb-16 px-6 min-h-screen flex items-center">
+      <section className="pt-24 sm:pt-32 pb-16 px-4 sm:px-6 min-h-screen flex items-center">
         <div className="max-w-7xl mx-auto text-center">
           <h1 
-            className="font-bold mb-8 leading-tight text-gray-900"
-            style={{fontSize: 'clamp(2.2rem, 2.2rem + ((1vw - 0.2rem) * 3.5), 4.5rem)'}}
+            className="font-bold mb-6 sm:mb-8 leading-tight text-gray-900 px-4"
+            style={{fontSize: 'clamp(1.8rem, 2.2rem + ((1vw - 0.2rem) * 3.5), 4.5rem)'}}
           >
             {t.hero.title}
           </h1>
-          <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-12">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-8 sm:mb-12 px-4">
             {t.hero.subtitle}
           </p>
           
           <div 
-            className="flex justify-center gap-5 mt-16"
-            style={{ 
-              width: '1330px', 
-              margin: '0 auto',
-              maxWidth: '1330px'
-            }}
+            className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-5 mt-12 sm:mt-16 px-4"
           >
             {tools.map((tool, index) => (
               <div
@@ -423,7 +415,7 @@ export default function Home() {
                 style={{ 
                   animationDelay: `${index * 0.2}s`
                 }}
-                className="animate-fade-in-up"
+                className="animate-fade-in-up w-full sm:w-auto"
               >
                 <ToolCard
                   tool={tool}

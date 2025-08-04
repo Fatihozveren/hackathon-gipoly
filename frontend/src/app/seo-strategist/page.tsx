@@ -344,8 +344,8 @@ export default function SEOStrategistPage() {
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-fuchsia-50">
       {/* Navbar */}
       <nav className="bg-white/90 backdrop-blur-xl border-b border-white/60 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push('/')}
@@ -354,11 +354,11 @@ export default function SEOStrategistPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                <span className="font-medium">{t.back}</span>
+                <span className="font-medium text-sm sm:text-base">{t.back}</span>
               </button>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">
+              <div className="text-xs sm:text-sm text-gray-500">
                 Workspace: <span className="font-medium text-cyan-600">{currentWorkspace?.name}</span>
               </div>
             </div>
@@ -366,13 +366,13 @@ export default function SEOStrategistPage() {
         </div>
       </nav>
 
-      <div className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Header */}
-        <div className="text-center mb-16 pt-8">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-600 to-fuchsia-600 bg-clip-text text-transparent mb-8 leading-tight">
+        <div className="text-center mb-8 sm:mb-16 pt-4 sm:pt-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-600 to-fuchsia-600 bg-clip-text text-transparent mb-4 sm:mb-8 leading-tight px-4">
             {t.title}
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
             {t.subtitle}
           </p>
         </div>
@@ -381,29 +381,29 @@ export default function SEOStrategistPage() {
 
         {/* Type Selection Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4">
-              <h2 className="text-2xl font-bold text-center mb-6">Analiz Türünü Seçin</h2>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 max-w-2xl w-full mx-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Analiz Türünü Seçin</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* Manual Entry Card */}
                 <button
                   onClick={() => handleTypeSelect('manual')}
-                  className="p-6 border-2 border-cyan-200 rounded-xl hover:border-cyan-400 hover:bg-cyan-50 transition-all duration-300 text-left"
+                  className="p-4 sm:p-6 border-2 border-cyan-200 rounded-xl hover:border-cyan-400 hover:bg-cyan-50 transition-all duration-300 text-left"
                 >
-                  <div className="text-3xl mb-4">✏️</div>
-                  <h3 className="text-xl font-semibold mb-2">{t.manualTitle}</h3>
-                  <p className="text-gray-600">{t.manualDescription}</p>
+                  <div className="text-2xl sm:text-3xl mb-3 sm:mb-4">✏️</div>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2">{t.manualTitle}</h3>
+                  <p className="text-sm sm:text-base text-gray-600">{t.manualDescription}</p>
                 </button>
 
                 {/* URL Entry Card */}
                 <button
                   onClick={() => handleTypeSelect('url')}
-                  className="p-6 border-2 border-fuchsia-200 rounded-xl hover:border-fuchsia-400 hover:bg-fuchsia-50 transition-all duration-300 text-left"
+                  className="p-4 sm:p-6 border-2 border-fuchsia-200 rounded-xl hover:border-fuchsia-400 hover:bg-fuchsia-50 transition-all duration-300 text-left"
                 >
-                  <div className="text-3xl mb-4">🌐</div>
-                  <h3 className="text-xl font-semibold mb-2">{t.urlTitle}</h3>
-                  <p className="text-gray-600">{t.urlDescription}</p>
+                  <div className="text-2xl sm:text-3xl mb-3 sm:mb-4">🌐</div>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2">{t.urlTitle}</h3>
+                  <p className="text-sm sm:text-base text-gray-600">{t.urlDescription}</p>
                 </button>
               </div>
             </div>
@@ -413,7 +413,7 @@ export default function SEOStrategistPage() {
         {/* Manual Form */}
         {selectedType === 'manual' && !result && (
           <div className="max-w-2xl mx-auto">
-            <form onSubmit={handleManualSubmit} className="space-y-6">
+            <form onSubmit={handleManualSubmit} className="space-y-4 sm:space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t.productName} *

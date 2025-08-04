@@ -33,7 +33,7 @@ def migrate_database():
         # Import all models to register them
         from models.user import User
         from models.workspace import Workspace, WorkspaceMember
-        from tools.trend_agent.models import TrendSuggestion
+        from tools.trend_agent.models import TrendSuggestion, TrendCategory
         from tools.seo_strategist.models import SEOAnalysis
         from tools.adcreative.models import AdCreativeAnalysis
         

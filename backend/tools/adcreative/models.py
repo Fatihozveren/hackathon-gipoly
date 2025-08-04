@@ -1,6 +1,10 @@
 from datetime import datetime
 from sqlmodel import SQLModel, Field
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from models.workspace import Workspace
+    from models.user import User
 
 
 class AdCreativeAnalysis(SQLModel, table=True):

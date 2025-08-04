@@ -298,8 +298,8 @@ export default function TrendAgentPage() {
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50">
       {/* Navbar */}
       <nav className="bg-white/90 backdrop-blur-xl border-b border-white/60 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push('/')}
@@ -308,11 +308,11 @@ export default function TrendAgentPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                <span className="font-medium">{t.backToHome}</span>
+                <span className="font-medium text-sm sm:text-base">{t.backToHome}</span>
               </button>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">
+              <div className="text-xs sm:text-sm text-gray-500">
                 {t.workspace}: <span className="font-medium text-cyan-600">{currentWorkspace?.name}</span>
               </div>
             </div>
@@ -320,86 +320,90 @@ export default function TrendAgentPage() {
         </div>
       </nav>
 
-      <div className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Header */}
-        <div className="text-center mb-16 pt-8">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-8 leading-tight">
+        <div className="text-center mb-8 sm:mb-16 pt-4 sm:pt-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-4 sm:mb-8 leading-tight px-4">
             {t.title}
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
             {t.subtitle}
           </p>
         </div>
 
         <div className="max-w-6xl mx-auto">
           {/* Trend Chart */}
-          <div className="mb-12">
+          <div className="mb-8 sm:mb-12">
             <TrendChart data={trendData} />
           </div>
 
           {/* Form */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg mb-12">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg mb-8 sm:mb-12">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Yeni Trend Analizi</h3>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t.category}
-                </label>
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
-                  placeholder={t.categoryPlaceholder}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                />
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.category}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => handleInputChange('category', e.target.value)}
+                    placeholder={t.categoryPlaceholder}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.targetCountry}
+                  </label>
+                  <select
+                    value={formData.target_country}
+                    onChange={(e) => handleInputChange('target_country', e.target.value)}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base"
+                  >
+                    <option value="TR">Türkiye</option>
+                    <option value="US">United States</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t.targetCountry}
-                </label>
-                <select
-                  value={formData.target_country}
-                  onChange={(e) => handleInputChange('target_country', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                >
-                  <option value="TR">Türkiye</option>
-                  <option value="US">United States</option>
-                  <option value="UK">United Kingdom</option>
-                  <option value="DE">Germany</option>
-                  <option value="FR">France</option>
-                </select>
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.budgetRange}
+                  </label>
+                  <select
+                    value={formData.budget_range}
+                    onChange={(e) => handleInputChange('budget_range', e.target.value)}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base"
+                  >
+                    <option value="Select Budget Range">{t.selectBudgetRange}</option>
+                    <option value="low">{t.budgetOptions.low}</option>
+                    <option value="medium">{t.budgetOptions.medium}</option>
+                    <option value="high">{t.budgetOptions.high}</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t.budgetRange}
-                </label>
-                <select
-                  value={formData.budget_range}
-                  onChange={(e) => handleInputChange('budget_range', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                >
-                  <option value="Select Budget Range">{t.selectBudgetRange}</option>
-                  <option value="low">{t.budgetOptions.low}</option>
-                  <option value="medium">{t.budgetOptions.medium}</option>
-                  <option value="high">{t.budgetOptions.high}</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t.targetAudience}
-                </label>
-                <input
-                  type="text"
-                  value={formData.target_audience}
-                  onChange={(e) => handleInputChange('target_audience', e.target.value)}
-                  placeholder={t.audiencePlaceholder}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.targetAudience}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.target_audience}
+                    onChange={(e) => handleInputChange('target_audience', e.target.value)}
+                    placeholder={t.audiencePlaceholder}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base"
+                  />
+                </div>
               </div>
 
               <div>
@@ -411,7 +415,7 @@ export default function TrendAgentPage() {
                   onChange={(e) => handleInputChange('additional_notes', e.target.value)}
                   placeholder={t.notesPlaceholder}
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base"
                 />
               </div>
 
@@ -422,7 +426,7 @@ export default function TrendAgentPage() {
                 <select
                   value={formData.product_count}
                   onChange={(e) => handleInputChange('product_count', parseInt(e.target.value))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base"
                 >
                   <option value={1}>1</option>
                   <option value={2}>2</option>
@@ -435,7 +439,7 @@ export default function TrendAgentPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full px-6 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+                className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden text-sm sm:text-base"
               >
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">

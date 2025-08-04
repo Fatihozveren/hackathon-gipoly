@@ -1,6 +1,9 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from tools.trend_agent.models import TrendSuggestion
 
 
 class User(SQLModel, table=True, extend_existing=True):

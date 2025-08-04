@@ -1,6 +1,10 @@
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Text, Column, Relationship
+
+if TYPE_CHECKING:
+    from models.workspace import Workspace
+    from models.user import User
 
 
 class TrendSuggestion(SQLModel, table=True, extend_existing=True):
