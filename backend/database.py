@@ -16,8 +16,6 @@ engine = create_engine(DATABASE_URL, echo=True)
 
 def init_db():
     """Initialize database tables from SQLModel metadata"""
-    SQLModel.metadata.clear()
-    
     # Import models to register them
     from models.user import User
     from models.workspace import Workspace, WorkspaceMember
@@ -25,7 +23,7 @@ def init_db():
     from tools.seo_strategist.models import SEOAnalysis
     from tools.adcreative.models import AdCreativeAnalysis
 
-    
+    # Create all tables
     SQLModel.metadata.create_all(engine)
 
 
