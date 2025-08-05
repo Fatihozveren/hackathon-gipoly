@@ -276,25 +276,43 @@ class AdCreativeAgent:
             # Use Vertex AI Imagen model
             model = ImageGenerationModel.from_pretrained("imagen-3.0-generate-002")
             
-            # Generate image with more parameters like Google docs
-            response = model.generate_images(
-                prompt=prompt,
-                number_of_images=1,
-                language="en",
-                aspect_ratio="1:1",
-                safety_filter_level="block_some",
-                person_generation="allow_adult"
-            )
+            # Generate image with parameters (try-catch for compatibility)
+            try:
+                response = model.generate_images(
+                    prompt=prompt,
+                    number_of_images=1,
+                    language="en",
+                    aspect_ratio="1:1",
+                    safety_filter_level="block_some",
+                    person_generation="allow_adult"
+                )
+                print(f"Response with advanced parameters: {response}")
+            except TypeError as e:
+                # Fallback to basic parameters if advanced parameters not supported
+                print(f"Advanced parameters not supported, using basic: {e}")
+                response = model.generate_images(
+                    prompt=prompt,
+                    number_of_images=1
+                )
+                print(f"Response with basic parameters: {response}")
+            
+            print(f"Response type: {type(response)}")
+            print(f"Response attributes: {dir(response)}")
             
             # Check if response has images
             if response and hasattr(response, 'images') and response.images:
+                print(f"Number of images: {len(response.images)}")
                 # Get the first image
                 image = response.images[0]
+                print(f"Image type: {type(image)}")
+                print(f"Image attributes: {dir(image)}")
                 
                 # Get image bytes directly from the image object
                 image_bytes = image._image_bytes
+                print(f"Image bytes length: {len(image_bytes)}")
                 return image_bytes
             else:
+                print(f"Response has no images. Response: {response}")
                 raise Exception("Vertex AI returned no images")
             
         except Exception as e:
