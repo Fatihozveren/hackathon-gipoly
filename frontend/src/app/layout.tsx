@@ -13,6 +13,19 @@ const sora = Sora({
 export const metadata: Metadata = {
   title: 'Gipoly - AI-powered tools for e-commerce sellers',
   description: 'Discover what to sell and at what price with AI-powered tools for e-commerce sellers.',
+  icons: {
+    icon: [
+      {
+        url: '/favicon.ico',
+        sizes: 'any',
+      },
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+      },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({
