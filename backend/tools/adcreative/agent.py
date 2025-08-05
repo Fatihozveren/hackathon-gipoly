@@ -41,7 +41,6 @@ class AdCreativeAgent:
             
             if credentials_path:
                 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
-                print(f"Using Google Drive credentials: {credentials_path}")
             else:
                 # Fallback to environment variable
                 credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
@@ -59,21 +58,14 @@ class AdCreativeAgent:
             project_id = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
             location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
             
-            print(f"Project ID: {project_id}")
-            print(f"Location: {location}")
-            
             if project_id:
                 try:
-                    print("Initializing Vertex AI...")
                     vertexai.init(project=project_id, location=location)
                     self.vertex_ai_available = True
-                    print("Vertex AI initialized successfully!")
                 except Exception as init_error:
-                    print(f"Vertex AI initialization failed: {init_error}")
                     self.vertex_ai_available = False
             else:
                 self.vertex_ai_available = False
-                print("GOOGLE_CLOUD_PROJECT_ID not found - Vertex AI disabled")
 
         except Exception as e:
             self.vertex_ai_available = False
@@ -86,10 +78,7 @@ class AdCreativeAgent:
             # Google Drive direct link
             drive_link = os.getenv("GOOGLE_DRIVE_CREDENTIALS_URL")
             if not drive_link:
-                print("GOOGLE_DRIVE_CREDENTIALS_URL not found")
                 return None
-            
-            print(f"Downloading credentials from: {drive_link}")
             
             # Convert Google Drive view link to direct download link
             if "drive.google.com/file/d/" in drive_link:
@@ -97,8 +86,6 @@ class AdCreativeAgent:
                 download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
             else:
                 download_url = drive_link
-            
-            print(f"Using download URL: {download_url}")
             
             # Download the file
             response = requests.get(download_url, timeout=30)
@@ -110,11 +97,9 @@ class AdCreativeAgent:
                 f.write(response.text)
                 temp_path = f.name
             
-            print(f"Credentials downloaded successfully: {temp_path}")
             return temp_path
             
         except Exception as e:
-            print(f"Failed to download credentials from Drive: {e}")
             return None
     
     async def generate_ad_campaign(self, request: AdCreativeRequest) -> AdCreativeResult:
@@ -122,20 +107,13 @@ class AdCreativeAgent:
         Generate complete advertising campaign including text and image.
         """
         try:
-            print("Starting ad campaign generation...")
-            
             # Step 1: Generate text content with Gemini
-            print("Generating text content...")
             text_result = await self._generate_text_content(request)
-            print("Text content generated successfully")
             
             # Step 2: Generate image with Vertex AI
-            print("Generating image...")
             image_url = await self._generate_ad_image(request)
-            print(f"Image generated: {image_url}")
             
             # Step 3: Combine results
-            print("Combining results...")
             return AdCreativeResult(
                 headlines=Headlines(
                     short=text_result["headlines"]["short"],
@@ -155,9 +133,6 @@ class AdCreativeAgent:
             )
             
         except Exception as e:
-            print(f"Ad campaign generation failed with error: {str(e)}")
-            import traceback
-            print(f"Full traceback: {traceback.format_exc()}")
             raise Exception(f"Ad campaign generation failed: {str(e)}")
     
     async def _generate_text_content(self, request: AdCreativeRequest) -> Dict[str, Any]:
@@ -286,33 +261,22 @@ class AdCreativeAgent:
                     safety_filter_level="block_some",
                     person_generation="allow_adult"
                 )
-                print(f"Response with advanced parameters: {response}")
             except TypeError as e:
                 # Fallback to basic parameters if advanced parameters not supported
-                print(f"Advanced parameters not supported, using basic: {e}")
                 response = model.generate_images(
                     prompt=prompt,
                     number_of_images=1
                 )
-                print(f"Response with basic parameters: {response}")
-            
-            print(f"Response type: {type(response)}")
-            print(f"Response attributes: {dir(response)}")
             
             # Check if response has images
             if response and hasattr(response, 'images') and response.images:
-                print(f"Number of images: {len(response.images)}")
                 # Get the first image
                 image = response.images[0]
-                print(f"Image type: {type(image)}")
-                print(f"Image attributes: {dir(image)}")
                 
                 # Get image bytes directly from the image object
                 image_bytes = image._image_bytes
-                print(f"Image bytes length: {len(image_bytes)}")
                 return image_bytes
             else:
-                print(f"Response has no images. Response: {response}")
                 raise Exception("Vertex AI returned no images")
             
         except Exception as e:
