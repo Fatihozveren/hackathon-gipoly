@@ -316,11 +316,13 @@ export default function AdCreativePage() {
         Awareness: "Awareness"
       },
       ageRanges: {
+        "1-18": "1-18",
         "18-25": "18-25",
         "25-35": "25-35",
         "35-45": "35-45",
         "45-65": "45-65",
-        "65+": "65+"
+        "65+": "65+",
+        "all": "all"
       }
     },
     tr: {
@@ -373,11 +375,13 @@ export default function AdCreativePage() {
         Awareness: "Farkındalık"
       },
       ageRanges: {
+        "1-18": "1-18",
         "18-25": "18-25",
         "25-35": "25-35",
         "35-45": "35-45",
         "45-65": "45-65",
-        "65+": "65+"
+        "65+": "65+",
+        "hepsi": "hepsi"
       }
     }
   };

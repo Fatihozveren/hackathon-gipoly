@@ -87,7 +87,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-gray-900 placeholder-gray-500 transition-all duration-200 backdrop-blur-sm"
-                placeholder="John Doe"
+                placeholder="Fatih Özveren"
                 required
               />
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/0 via-sky-500/0 to-fuchsia-500/0 opacity-0 focus-within:opacity-10 transition-opacity duration-200 pointer-events-none" />
@@ -105,7 +105,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-gray-900 placeholder-gray-500 transition-all duration-200 backdrop-blur-sm"
-                placeholder="your@email.com"
+                placeholder="fatihoz@hotmail.com"
                 required
               />
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/0 via-sky-500/0 to-fuchsia-500/0 opacity-0 focus-within:opacity-10 transition-opacity duration-200 pointer-events-none" />

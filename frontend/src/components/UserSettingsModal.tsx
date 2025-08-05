@@ -189,7 +189,7 @@ export function UserSettingsModal({ isOpen, onClose, user, language, onUserUpdat
                 value={profileData.full_name}
                 onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                placeholder="John Doe"
+                placeholder="Fatih Özveren"
               />
             </div>
             <div>
