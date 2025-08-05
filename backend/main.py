@@ -26,6 +26,26 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     logger.info("Starting Gipoly Backend API...")
+    
+    # Setup Google Cloud credentials
+    try:
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        drive_link = os.getenv("GOOGLE_DRIVE_CREDENTIALS_URL")
+        
+        if gemini_key:
+            logger.info("Gemini API key found")
+        else:
+            logger.warning("GEMINI_API_KEY not found")
+            
+        if drive_link:
+            logger.info("Google Drive credentials URL found")
+        else:
+            logger.warning("GOOGLE_DRIVE_CREDENTIALS_URL not found")
+            
+    except Exception as e:
+        logger.warning(f"Google credentials setup failed: {e}")
+    
+    # Initialize database
     init_db()
     logger.info("Database initialized successfully")
     yield

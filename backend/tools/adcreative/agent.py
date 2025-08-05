@@ -30,34 +30,31 @@ class AdCreativeAgent:
         genai.configure(api_key=self.gemini_api_key)
         self.model = genai.GenerativeModel('gemini-2.0-flash')
         
-
-        
         # Initialize Vertex AI
         self._setup_vertex_ai()
     
     def _setup_vertex_ai(self):
-        """Setup Vertex AI client."""
+        """Setup Vertex AI client with Google Drive credentials."""
         try:
-            # Set Google Cloud credentials from environment variable
-            credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-            credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            # Try to download credentials from Google Drive
+            credentials_path = self._download_credentials_from_drive()
             
-            if credentials_json:
-                # Use JSON content from environment variable
-                import tempfile
-                import json
-                
-                # Create temporary file with credentials
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-                    json.dump(json.loads(credentials_json), f)
-                    temp_credentials_path = f.name
-                
-                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_credentials_path
-                
-            elif credentials_path:
-                # Use file path (for local development)
+            if credentials_path:
                 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
-            
+                print(f"Using Google Drive credentials: {credentials_path}")
+            else:
+                # Fallback to environment variable
+                credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+                if credentials_json:
+                    import tempfile
+                    import json
+                    
+                    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                        json.dump(json.loads(credentials_json), f)
+                        temp_credentials_path = f.name
+                    
+                    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_credentials_path
+
             # Initialize Vertex AI
             project_id = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
             location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
@@ -71,9 +68,48 @@ class AdCreativeAgent:
                     self.vertex_ai_available = False
             else:
                 self.vertex_ai_available = False
-                
+
         except Exception as e:
             self.vertex_ai_available = False
+    
+    def _download_credentials_from_drive(self) -> Optional[str]:
+        """Download Google credentials from Google Drive using direct link."""
+        try:
+            import requests
+            
+            # Google Drive direct link
+            drive_link = os.getenv("GOOGLE_DRIVE_CREDENTIALS_URL")
+            if not drive_link:
+                print("GOOGLE_DRIVE_CREDENTIALS_URL not found")
+                return None
+            
+            print(f"Downloading credentials from: {drive_link}")
+            
+            # Convert Google Drive view link to direct download link
+            if "drive.google.com/file/d/" in drive_link:
+                file_id = drive_link.split("/file/d/")[1].split("/")[0]
+                download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+            else:
+                download_url = drive_link
+            
+            print(f"Using download URL: {download_url}")
+            
+            # Download the file
+            response = requests.get(download_url, timeout=30)
+            response.raise_for_status()
+            
+            # Save to temporary file
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                f.write(response.text)
+                temp_path = f.name
+            
+            print(f"Credentials downloaded successfully: {temp_path}")
+            return temp_path
+            
+        except Exception as e:
+            print(f"Failed to download credentials from Drive: {e}")
+            return None
     
     async def generate_ad_campaign(self, request: AdCreativeRequest) -> AdCreativeResult:
         """
@@ -254,11 +290,12 @@ class AdCreativeAgent:
             # Initialize Google Cloud Storage client
             storage_client = storage.Client()
             
-            # Get bucket (create if doesn't exist)
-            bucket_name = "gipoly-adcreative-images"
+            # Get bucket name from environment variable
+            bucket_name = os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET", "gipoly-adcreative-images")
             try:
                 bucket = storage_client.get_bucket(bucket_name)
-            except:
+            except Exception as e:
+                # If bucket doesn't exist, create it
                 bucket = storage_client.create_bucket(bucket_name, location="us-central1")
                 # Make bucket publicly readable
                 bucket.make_public()
