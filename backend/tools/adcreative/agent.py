@@ -59,15 +59,21 @@ class AdCreativeAgent:
             project_id = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
             location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
             
+            print(f"Project ID: {project_id}")
+            print(f"Location: {location}")
+            
             if project_id:
                 try:
+                    print("Initializing Vertex AI...")
                     vertexai.init(project=project_id, location=location)
                     self.vertex_ai_available = True
+                    print("Vertex AI initialized successfully!")
                 except Exception as init_error:
                     print(f"Vertex AI initialization failed: {init_error}")
                     self.vertex_ai_available = False
             else:
                 self.vertex_ai_available = False
+                print("GOOGLE_CLOUD_PROJECT_ID not found - Vertex AI disabled")
 
         except Exception as e:
             self.vertex_ai_available = False
@@ -116,13 +122,20 @@ class AdCreativeAgent:
         Generate complete advertising campaign including text and image.
         """
         try:
+            print("Starting ad campaign generation...")
+            
             # Step 1: Generate text content with Gemini
+            print("Generating text content...")
             text_result = await self._generate_text_content(request)
+            print("Text content generated successfully")
             
             # Step 2: Generate image with Vertex AI
+            print("Generating image...")
             image_url = await self._generate_ad_image(request)
+            print(f"Image generated: {image_url}")
             
             # Step 3: Combine results
+            print("Combining results...")
             return AdCreativeResult(
                 headlines=Headlines(
                     short=text_result["headlines"]["short"],
@@ -142,6 +155,9 @@ class AdCreativeAgent:
             )
             
         except Exception as e:
+            print(f"Ad campaign generation failed with error: {str(e)}")
+            import traceback
+            print(f"Full traceback: {traceback.format_exc()}")
             raise Exception(f"Ad campaign generation failed: {str(e)}")
     
     async def _generate_text_content(self, request: AdCreativeRequest) -> Dict[str, Any]:
